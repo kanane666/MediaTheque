@@ -32,9 +32,7 @@
       --radius: 10px;
       --radius-lg: 14px;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -44,8 +42,80 @@
       line-height: 1.6;
     }
 
-    /* ── Layout ── */
-    .layout { display: flex; min-height: 100vh; }
+    /* ── Login screen ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .login-card {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+    }
+    .login-emoji { font-size: 52px; margin-bottom: 1.25rem; display: block; }
+    .login-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+    .login-sub { font-size: 14px; color: var(--text3); margin-bottom: 2rem; line-height: 1.5; }
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: #fff;
+      color: #1a1a1a;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-google:hover { background: #f0f0f0; transform: translateY(-1px); }
+    .btn-google:active { transform: translateY(0); }
+    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .login-note { font-size: 12px; color: var(--text3); margin-top: 1.25rem; line-height: 1.5; }
+
+    /* ── Loading overlay ── */
+    #loading-screen {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #loading-screen.show { display: flex; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-txt { font-size: 14px; color: var(--text3); }
+
+    /* ── App layout ── */
+    #app { display: none; }
+    #app.show { display: flex; min-height: 100vh; }
 
     .sidebar {
       width: 220px;
@@ -58,9 +128,8 @@
       overflow-y: auto;
       z-index: 10;
     }
-
     .sidebar-logo {
-      padding: 0 1.25rem 1.5rem;
+      padding: 0 1.25rem 1.25rem;
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
@@ -71,184 +140,147 @@
       font-weight: 400;
       letter-spacing: -0.3px;
     }
-    .sidebar-logo span {
-      font-size: 11px;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    .sidebar-logo span { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
 
-    .sidebar-section {
-      padding: 0 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-    .sidebar-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--text3);
-      padding: 0 0.5rem;
-      margin-bottom: 4px;
-    }
-
-    .cat-btn {
-      width: 100%;
+    /* User info in sidebar */
+    .sidebar-user {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 10px;
+      padding: 0.75rem 1rem;
+      margin: 0 0.75rem 0.5rem;
+      background: var(--bg3);
       border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: var(--text2);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.12s;
+      border: 1px solid var(--border);
+    }
+    .user-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--accent-bg);
+    }
+    .user-avatar-placeholder {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--accent); flex-shrink: 0;
+    }
+    .user-name { font-size: 12px; color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn-logout {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 15px; padding: 2px;
+      border-radius: 4px; transition: color 0.12s; flex-shrink: 0;
+    }
+    .btn-logout:hover { color: var(--abandoned); }
+
+    .sidebar-section { padding: 0 0.75rem; margin-bottom: 1.5rem; }
+    .sidebar-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--text3); padding: 0 0.5rem; margin-bottom: 4px;
+    }
+    .cat-btn {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text2);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      cursor: pointer; text-align: left; transition: all 0.12s;
     }
     .cat-btn:hover { background: var(--bg3); color: var(--text); }
     .cat-btn.active { background: var(--accent-bg); color: var(--accent2); }
     .cat-btn .cat-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
     .cat-btn .cat-count {
-      margin-left: auto;
-      font-size: 11px;
-      background: var(--bg3);
-      color: var(--text3);
-      padding: 1px 6px;
-      border-radius: 10px;
-      min-width: 20px;
-      text-align: center;
+      margin-left: auto; font-size: 11px; background: var(--bg3);
+      color: var(--text3); padding: 1px 6px; border-radius: 10px;
+      min-width: 20px; text-align: center;
     }
     .cat-btn.active .cat-count { background: rgba(212,168,75,0.15); color: var(--accent); }
 
+    /* ── Main ── */
     .main {
       margin-left: 220px;
       flex: 1;
       padding: 2rem 2.5rem;
       max-width: 900px;
     }
-
-    /* ── Top bar ── */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.75rem;
-      gap: 1rem;
-      flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem; gap: 1rem; flex-wrap: wrap;
     }
     .page-title {
-      font-family: 'Instrument Serif', serif;
-      font-size: 28px;
-      font-weight: 400;
-      color: var(--text);
-      letter-spacing: -0.5px;
+      font-family: 'Instrument Serif', serif; font-size: 28px;
+      font-weight: 400; color: var(--text); letter-spacing: -0.5px;
     }
-    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    /* Sync indicator */
+    .sync-dot {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--text3);
+    }
+    .sync-dot span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--done); display: inline-block;
+    }
+    .sync-dot.syncing span {
+      background: var(--accent);
+      animation: pulse 1s infinite;
+    }
+    .sync-dot.offline span { background: var(--abandoned); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     .btn-primary {
       display: flex; align-items: center; gap: 6px;
-      background: var(--accent);
-      color: #1a1400;
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
+      background: var(--accent); color: #1a1400; border: none;
+      padding: 8px 16px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
     }
     .btn-primary:hover { background: var(--accent2); }
-
-    .btn-ghost {
-      display: flex; align-items: center; gap: 6px;
-      background: transparent;
-      color: var(--text2);
-      border: 1px solid var(--border2);
-      padding: 7px 14px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-    .btn-ghost:hover { background: var(--bg3); color: var(--text); }
 
     /* ── Stats ── */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-      gap: 10px;
-      margin-bottom: 1.75rem;
+      gap: 10px; margin-bottom: 1.75rem;
     }
     .stat-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.25rem;
     }
     .stat-num { font-size: 24px; font-weight: 600; color: var(--text); }
     .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
     .stat-card.gold .stat-num { color: var(--accent2); }
 
     /* ── Filters ── */
-    .filters {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-    }
+    .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .filters input[type="text"] {
-      flex: 1;
-      min-width: 180px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.12s;
+      flex: 1; min-width: 180px; background: var(--bg2);
+      border: 1px solid var(--border); color: var(--text);
+      padding: 8px 12px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.12s;
     }
     .filters input:focus { border-color: var(--accent); }
     .filters input::placeholder { color: var(--text3); }
     .filters select {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      outline: none;
-      cursor: pointer;
-      min-width: 140px;
+      background: var(--bg2); border: 1px solid var(--border); color: var(--text2);
+      padding: 8px 12px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; cursor: pointer; min-width: 140px;
     }
     .filters select:focus { border-color: var(--accent); }
 
     /* ── Modal ── */
     .modal-bg {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.65);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 100;
+      align-items: center; justify-content: center; padding: 1rem;
     }
     .modal-bg.open { display: flex; }
     .modal {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: var(--radius-lg);
-      padding: 1.75rem;
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--radius-lg); padding: 1.75rem;
+      width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
     }
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -263,20 +295,14 @@
     .btn-close:hover { color: var(--text); }
 
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-grid.wide { grid-template-columns: 1fr; }
     .form-field { display: flex; flex-direction: column; gap: 5px; }
     .form-field.span2 { grid-column: span 2; }
     .form-field label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
     .form-field input, .form-field select, .form-field textarea {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.12s;
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); padding: 9px 12px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.12s;
     }
     .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
     .form-field input::placeholder, .form-field textarea::placeholder { color: var(--text3); }
@@ -286,8 +312,7 @@
     .star-picker { display: flex; gap: 6px; }
     .star-btn {
       background: transparent; border: none; cursor: pointer;
-      font-size: 22px; color: var(--text3); transition: color 0.1s, transform 0.1s;
-      padding: 0;
+      font-size: 22px; color: var(--text3); transition: color 0.1s, transform 0.1s; padding: 0;
     }
     .star-btn:hover, .star-btn.active { color: var(--accent2); transform: scale(1.15); }
 
@@ -300,90 +325,53 @@
     .btn-secondary:hover { background: var(--bg3); color: var(--text); }
 
     /* ── List ── */
-    .list-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
-    }
+    .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .list-count { font-size: 13px; color: var(--text3); }
-
     .media-list { display: flex; flex-direction: column; gap: 6px; }
-
     .media-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 0.875rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 0.875rem 1rem;
+      display: flex; align-items: center; gap: 12px;
       transition: border-color 0.12s, background 0.12s;
-      cursor: default;
     }
     .media-card:hover { border-color: var(--border2); background: var(--bg3); }
-
     .media-emoji {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      background: var(--bg3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--bg3); display: flex; align-items: center;
+      justify-content: center; font-size: 20px; flex-shrink: 0;
       border: 1px solid var(--border);
     }
-
     .media-body { flex: 1; min-width: 0; }
     .media-title { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .media-sub { font-size: 12px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
     .media-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .stars { color: var(--accent); font-size: 13px; letter-spacing: -1px; }
-
-    .badge {
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
+    .badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
     .badge-done { background: var(--done-bg); color: var(--done); }
     .badge-progress { background: var(--progress-bg); color: var(--progress); }
     .badge-wishlist { background: var(--wishlist-bg); color: var(--wishlist); }
     .badge-abandoned { background: var(--abandoned-bg); color: var(--abandoned); }
-
     .btn-del {
       background: transparent; border: none; color: var(--text3);
       cursor: pointer; padding: 5px; border-radius: 6px;
-      display: flex; align-items: center;
-      transition: color 0.12s;
-      font-size: 16px;
+      display: flex; align-items: center; transition: color 0.12s; font-size: 16px;
     }
     .btn-del:hover { color: var(--abandoned); }
-
-    .empty {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--text3);
-    }
+    .empty { text-align: center; padding: 4rem 1rem; color: var(--text3); }
     .empty i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.35; }
     .empty p { font-size: 15px; margin-bottom: 4px; }
     .empty small { font-size: 13px; }
 
-    /* ── Export/Import ── */
-    .io-bar { display: flex; gap: 6px; }
-
-    /* ── Saved toast ── */
+    /* ── Toast ── */
     #toast {
       position: fixed; bottom: 1.5rem; right: 1.5rem;
       background: var(--bg2); border: 1px solid var(--border2);
-      color: var(--done);
-      padding: 10px 16px; border-radius: var(--radius);
-      font-size: 13px;
-      display: none;
-      align-items: center; gap: 8px;
-      z-index: 200;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      color: var(--done); padding: 10px 16px; border-radius: var(--radius);
+      font-size: 13px; display: none; align-items: center; gap: 8px;
+      z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     #toast.show { display: flex; }
+    #toast.error { color: var(--abandoned); }
 
     /* ── Mobile ── */
     @media (max-width: 700px) {
@@ -397,12 +385,45 @@
 </head>
 <body>
 
-<div class="layout">
-  <!-- Sidebar -->
+<!-- ══ LOADING ══ -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-txt">Connexion en cours…</div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <span class="login-emoji">📚</span>
+    <h1 class="login-title">Ma Médiathèque</h1>
+    <p class="login-sub">Ta collection de films, séries, mangas, livres<br>et bien plus — synchronisée partout.</p>
+    <button class="btn-google" onclick="signInGoogle()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continuer avec Google
+    </button>
+    <p class="login-note">Tes données sont privées et accessibles<br>uniquement avec ton compte Google.</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
       <h1>Médiathèque</h1>
       <span>ma collection</span>
+    </div>
+    <div style="padding: 0.5rem 0 0.75rem;">
+      <div class="sidebar-user">
+        <img id="user-avatar" class="user-avatar" src="" alt="" style="display:none;" />
+        <div id="user-avatar-placeholder" class="user-avatar-placeholder">👤</div>
+        <span id="user-name" class="user-name">—</span>
+        <button class="btn-logout" onclick="signOut()" title="Se déconnecter"><i class="ti ti-logout"></i></button>
+      </div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Catégories</div>
@@ -410,21 +431,25 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Données</div>
-      <button class="cat-btn" onclick="exportData()"><i class="ti ti-download cat-icon" aria-hidden="true"></i> Exporter JSON</button>
+      <button class="cat-btn" onclick="exportData()"><i class="ti ti-download cat-icon"></i> Exporter JSON</button>
       <label class="cat-btn" style="cursor:pointer;">
-        <i class="ti ti-upload cat-icon" aria-hidden="true"></i> Importer JSON
+        <i class="ti ti-upload cat-icon"></i> Importer JSON
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
     </div>
   </aside>
 
-  <!-- Main -->
   <main class="main">
     <div class="topbar">
-      <div id="page-title" class="page-title">Tout</div>
-      <div class="topbar-actions">
+      <div>
+        <div id="page-title" class="page-title">Tout</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="sync-dot" id="sync-indicator">
+          <span></span><span id="sync-label">Synchronisé</span>
+        </div>
         <button class="btn-primary" onclick="openModal()">
-          <i class="ti ti-plus" aria-hidden="true"></i> Ajouter
+          <i class="ti ti-plus"></i> Ajouter
         </button>
       </div>
     </div>
@@ -432,7 +457,7 @@
     <div class="stats-grid" id="stats-grid"></div>
 
     <div class="filters">
-      <input type="text" id="search" placeholder="🔍  Rechercher un titre, auteur..." oninput="renderList()" />
+      <input type="text" id="search" placeholder="🔍  Rechercher un titre, auteur…" oninput="renderList()" />
       <select id="status-filter" onchange="renderList()">
         <option value="">Tous les statuts</option>
         <option value="done">✅ Terminé</option>
@@ -450,12 +475,12 @@
   </main>
 </div>
 
-<!-- Add Modal -->
+<!-- ══ MODAL ══ -->
 <div class="modal-bg" id="modal" onclick="closeModalBg(event)">
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Nouveau média</span>
-      <button class="btn-close" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+      <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="form-grid">
       <div class="form-field span2">
@@ -495,39 +520,235 @@
       </div>
       <div class="form-field span2">
         <label>Commentaire perso</label>
-        <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford..."></textarea>
+        <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford…"></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Annuler</button>
-      <button class="btn-primary" onclick="saveItem()"><i class="ti ti-check" aria-hidden="true"></i> Enregistrer</button>
+      <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> Enregistrer</button>
     </div>
   </div>
 </div>
 
-<div id="toast"><i class="ti ti-circle-check" aria-hidden="true"></i> <span id="toast-msg">Sauvegardé !</span></div>
+<div id="toast"><i class="ti ti-circle-check"></i> <span id="toast-msg">Sauvegardé !</span></div>
+
+<!-- ══ FIREBASE SDK ══ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as fbSignOut,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ══════════════════════════════════════════════
+//  🔧 REMPLACE ICI AVEC TA CONFIG FIREBASE
+//  (voir README pour obtenir ces valeurs)
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBe_MW5-dyHwr69vs3yr-q2vMOnof5ysIc",
+  authDomain: "mediatheque-a4290.firebaseapp.com",
+  projectId: "mediatheque-a4290",
+  storageBucket: "mediatheque-a4290.firebasestorage.app",
+  messagingSenderId: "222863703899",
+  appId: "1:222863703899:web:ac10d4923c363f0864647e"
+};
+// ══════════════════════════════════════════════
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+let unsubscribeSnapshot = null;
+
+// ── Expose to global scope ──
+window.signInGoogle = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    showToast('Connexion annulée', true);
+  }
+};
+
+window.signOut = async () => {
+  if (unsubscribeSnapshot) unsubscribeSnapshot();
+  await fbSignOut(auth);
+};
+
+// ── Auth state ──
+onAuthStateChanged(auth, user => {
+  document.getElementById('loading-screen').classList.remove('show');
+  if (user) {
+    currentUser = user;
+    showApp(user);
+    subscribeToItems(user.uid);
+  } else {
+    currentUser = null;
+    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    showLogin();
+  }
+});
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('show');
+}
+
+function showApp(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  // Update user info
+  document.getElementById('user-name').textContent = user.displayName || user.email;
+  const avatarImg = document.getElementById('user-avatar');
+  const avatarPlaceholder = document.getElementById('user-avatar-placeholder');
+  if (user.photoURL) {
+    avatarImg.src = user.photoURL;
+    avatarImg.style.display = 'block';
+    avatarPlaceholder.style.display = 'none';
+  }
+}
+
+// ── Firestore real-time listener ──
+function subscribeToItems(uid) {
+  setSyncState('syncing');
+  const q = query(
+    collection(db, 'users', uid, 'items'),
+    orderBy('added', 'asc')
+  );
+  unsubscribeSnapshot = onSnapshot(q,
+    snapshot => {
+      items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setSyncState('ok');
+      renderStats();
+      renderSidebar();
+      renderList();
+    },
+    err => {
+      console.error(err);
+      setSyncState('offline');
+      showToast('Erreur de sync', true);
+    }
+  );
+}
+
+// ── Add item to Firestore ──
+window.saveItem = async () => {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { document.getElementById('f-title').focus(); return; }
+  if (!currentUser) return;
+
+  const btn = document.getElementById('btn-save-item');
+  btn.disabled = true;
+
+  const item = {
+    title,
+    cat:    document.getElementById('f-cat').value,
+    status: document.getElementById('f-status').value,
+    author: document.getElementById('f-author').value.trim(),
+    year:   document.getElementById('f-year').value.trim(),
+    rating: currentRating,
+    note:   document.getElementById('f-note').value.trim(),
+    added:  serverTimestamp(),
+  };
+
+  try {
+    setSyncState('syncing');
+    await addDoc(collection(db, 'users', currentUser.uid, 'items'), item);
+    resetForm();
+    closeModal();
+    showToast('Enregistré ✓');
+  } catch(e) {
+    showToast('Erreur d\'enregistrement', true);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// ── Delete item from Firestore ──
+window.del = async (id) => {
+  if (!currentUser) return;
+  try {
+    setSyncState('syncing');
+    await deleteDoc(doc(db, 'users', currentUser.uid, 'items', id));
+    showToast('Supprimé');
+  } catch(e) {
+    showToast('Erreur de suppression', true);
+    console.error(e);
+  }
+};
+
+// ── Import: batch write to Firestore ──
+window.importData = async (e) => {
+  const file = e.target.files[0];
+  if (!file || !currentUser) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('Format invalide');
+      setSyncState('syncing');
+      let count = 0;
+      for (const it of data) {
+        const { id, ...rest } = it;
+        rest.added = rest.added ? rest.added : Date.now();
+        await addDoc(collection(db, 'users', currentUser.uid, 'items'), rest);
+        count++;
+      }
+      showToast(`${count} médias importés !`);
+    } catch(err) {
+      showToast('Fichier invalide', true);
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+// ── Show loading on startup ──
+document.getElementById('loading-screen').classList.add('show');
+document.getElementById('login-screen').style.display = 'none';
+
+</script>
 
 <script>
-const CATS = [
-  { id: 'all',      label: 'Tout',        icon: '🗂️' },
-  { id: 'serie',    label: 'Séries',      icon: '📺' },
-  { id: 'film',     label: 'Films',       icon: '🎬' },
-  { id: 'theatre',  label: 'Théâtre',     icon: '🎭' },
-  { id: 'manga',    label: 'Manga',       icon: '📖' },
-  { id: 'anime',    label: 'Anime',       icon: '⛩️' },
-  { id: 'livre',    label: 'Livres',      icon: '📚' },
-  { id: 'bd',       label: 'BD',          icon: '🎨' },
-  { id: 'jeu',      label: 'Jeux vidéo',  icon: '🎮' },
-  { id: 'podcast',  label: 'Podcasts',    icon: '🎙️' },
-  { id: 'docu',     label: 'Docs',        icon: '🔭' },
-  { id: 'autre',    label: 'Autre',       icon: '✨' },
-];
+// ══ UI logic (non-Firebase) ══
 
+const CATS = [
+  { id: 'all',      label: 'Tout',       icon: '🗂️' },
+  { id: 'serie',    label: 'Séries',     icon: '📺' },
+  { id: 'film',     label: 'Films',      icon: '🎬' },
+  { id: 'theatre',  label: 'Théâtre',    icon: '🎭' },
+  { id: 'manga',    label: 'Manga',      icon: '📖' },
+  { id: 'anime',    label: 'Anime',      icon: '⛩️' },
+  { id: 'livre',    label: 'Livres',     icon: '📚' },
+  { id: 'bd',       label: 'BD',         icon: '🎨' },
+  { id: 'jeu',      label: 'Jeux vidéo', icon: '🎮' },
+  { id: 'podcast',  label: 'Podcasts',   icon: '🎙️' },
+  { id: 'docu',     label: 'Docs',       icon: '🔭' },
+  { id: 'autre',    label: 'Autre',      icon: '✨' },
+];
 const STATUS = {
-  done:      { label: 'Terminé',    cls: 'badge-done' },
-  progress:  { label: 'En cours',   cls: 'badge-progress' },
-  wishlist:  { label: 'À voir',     cls: 'badge-wishlist' },
-  abandoned: { label: 'Abandonné',  cls: 'badge-abandoned' },
+  done:      { label: 'Terminé',   cls: 'badge-done' },
+  progress:  { label: 'En cours',  cls: 'badge-progress' },
+  wishlist:  { label: 'À voir',    cls: 'badge-wishlist' },
+  abandoned: { label: 'Abandonné', cls: 'badge-abandoned' },
 };
 
 let items = [];
@@ -535,22 +756,23 @@ let activeCat = 'all';
 let currentRating = 0;
 let toastTimer = null;
 
-// ── Storage ──
-function load() {
-  try { items = JSON.parse(localStorage.getItem('mediatheque_v2') || '[]'); } catch(e) { items = []; }
-}
-function save() {
-  localStorage.setItem('mediatheque_v2', JSON.stringify(items));
-  showToast('Sauvegardé ✓');
+// ── Sync indicator ──
+function setSyncState(state) {
+  const el = document.getElementById('sync-indicator');
+  const lbl = document.getElementById('sync-label');
+  el.className = 'sync-dot';
+  if (state === 'syncing') { el.classList.add('syncing'); lbl.textContent = 'Sync…'; }
+  else if (state === 'offline') { el.classList.add('offline'); lbl.textContent = 'Hors ligne'; }
+  else { lbl.textContent = 'Synchronisé'; }
 }
 
 // ── Toast ──
-function showToast(msg) {
+function showToast(msg, isError = false) {
   const el = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = msg;
-  el.classList.add('show');
+  el.className = isError ? 'show error' : 'show';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  toastTimer = setTimeout(() => el.className = '', 2500);
 }
 
 // ── Sidebar ──
@@ -568,8 +790,7 @@ function renderSidebar() {
 
 function setcat(id) {
   activeCat = id;
-  const cat = CATS.find(c => c.id === id);
-  document.getElementById('page-title').textContent = cat.label;
+  document.getElementById('page-title').textContent = CATS.find(c => c.id === id).label;
   renderSidebar();
   renderList();
 }
@@ -577,11 +798,11 @@ function setcat(id) {
 // ── Stats ──
 function renderStats() {
   const total = items.length;
-  const done = items.filter(i => i.status === 'done').length;
-  const prog = items.filter(i => i.status === 'progress').length;
-  const wish = items.filter(i => i.status === 'wishlist').length;
+  const done  = items.filter(i => i.status === 'done').length;
+  const prog  = items.filter(i => i.status === 'progress').length;
+  const wish  = items.filter(i => i.status === 'wishlist').length;
   const rated = items.filter(i => i.rating > 0);
-  const avg = rated.length ? (rated.reduce((s, i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
+  const avg   = rated.length ? (rated.reduce((s,i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--done)">${done}</div><div class="stat-label">Terminés</div></div>
@@ -593,8 +814,8 @@ function renderStats() {
 
 // ── List ──
 function getFiltered() {
-  const q = (document.getElementById('search').value || '').toLowerCase();
-  const st = document.getElementById('status-filter').value;
+  const q  = (document.getElementById('search')?.value || '').toLowerCase();
+  const st = document.getElementById('status-filter')?.value || '';
   return items.filter(it => {
     if (activeCat !== 'all' && it.cat !== activeCat) return false;
     if (st && it.status !== st) return false;
@@ -609,85 +830,47 @@ function renderList() {
   document.getElementById('list-count').textContent = `${filtered.length} média${filtered.length !== 1 ? 's' : ''}`;
   if (!filtered.length) {
     el.innerHTML = `<div class="empty">
-      <i class="ti ti-photo-off" aria-hidden="true"></i>
+      <i class="ti ti-photo-off"></i>
       <p>Aucun média trouvé</p>
       <small>Utilise le bouton "Ajouter" pour commencer ta collection</small>
     </div>`;
     return;
   }
   el.innerHTML = filtered.map(item => {
-    const cat = CATS.find(c => c.id === item.cat) || CATS[CATS.length - 1];
-    const st = STATUS[item.status] || STATUS.done;
+    const cat   = CATS.find(c => c.id === item.cat) || CATS[CATS.length - 1];
+    const st    = STATUS[item.status] || STATUS.done;
     const stars = item.rating > 0 ? `<span class="stars">${'★'.repeat(item.rating)}</span>` : '';
-    const sub = [item.author, item.year].filter(Boolean).join(' · ');
+    const sub   = [item.author, item.year].filter(Boolean).join(' · ');
     return `<div class="media-card">
       <div class="media-emoji">${cat.icon}</div>
       <div class="media-body">
         <div class="media-title">${esc(item.title)}</div>
-        ${sub ? `<div class="media-sub">${esc(sub)}${item.note ? ' — ' + esc(item.note) : ''}</div>` : (item.note ? `<div class="media-sub">${esc(item.note)}</div>` : '')}
+        ${sub ? `<div class="media-sub">${esc(sub)}${item.note ? ' — ' + esc(item.note) : ''}</div>`
+               : item.note ? `<div class="media-sub">${esc(item.note)}</div>` : ''}
       </div>
       <div class="media-right">
         ${stars}
         <span class="badge ${st.cls}">${st.label}</span>
-        <button class="btn-del" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        <button class="btn-del" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
   }).join('');
 }
 
 function esc(s) {
-  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Delete ──
-function del(id) {
-  items = items.filter(i => i.id !== id);
-  save();
-  renderStats();
-  renderSidebar();
-  renderList();
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Modal ──
-function openModal() {
-  document.getElementById('modal').classList.add('open');
-  document.getElementById('f-title').focus();
-}
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-}
-function closeModalBg(e) {
-  if (e.target === document.getElementById('modal')) closeModal();
-}
+function openModal()  { document.getElementById('modal').classList.add('open'); document.getElementById('f-title').focus(); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModalBg(e) { if (e.target === document.getElementById('modal')) closeModal(); }
 
 function setRating(v) {
   currentRating = currentRating === v ? 0 : v;
-  document.querySelectorAll('.star-btn').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.v) <= currentRating);
-  });
-}
-
-function saveItem() {
-  const title = document.getElementById('f-title').value.trim();
-  if (!title) { document.getElementById('f-title').focus(); return; }
-  const item = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    title,
-    cat: document.getElementById('f-cat').value,
-    status: document.getElementById('f-status').value,
-    author: document.getElementById('f-author').value.trim(),
-    year: document.getElementById('f-year').value.trim(),
-    rating: currentRating,
-    note: document.getElementById('f-note').value.trim(),
-    added: Date.now(),
-  };
-  items.push(item);
-  save();
-  resetForm();
-  closeModal();
-  renderStats();
-  renderSidebar();
-  renderList();
+  document.querySelectorAll('.star-btn').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.v) <= currentRating)
+  );
 }
 
 function resetForm() {
@@ -696,15 +879,7 @@ function resetForm() {
   setRating(0);
 }
 
-// ── Populate cat select ──
-function populateCatSelect() {
-  document.getElementById('f-cat').innerHTML = CATS
-    .filter(c => c.id !== 'all')
-    .map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`)
-    .join('');
-}
-
-// ── Export / Import ──
+// ── Export ──
 function exportData() {
   const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -714,27 +889,15 @@ function exportData() {
   showToast('Exporté avec succès !');
 }
 
-function importData(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (!Array.isArray(data)) throw new Error();
-      items = data;
-      save();
-      renderStats();
-      renderSidebar();
-      renderList();
-      showToast(`${items.length} médias importés !`);
-    } catch { showToast('Fichier invalide'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+// ── Cat select ──
+function populateCatSelect() {
+  document.getElementById('f-cat').innerHTML = CATS
+    .filter(c => c.id !== 'all')
+    .map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`)
+    .join('');
 }
 
-// ── Keyboard shortcut ──
+// ── Keyboard ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
   if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) {
@@ -742,12 +905,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ── Init ──
-load();
 populateCatSelect();
-renderStats();
-renderSidebar();
-renderList();
 </script>
 </body>
 </html>
