@@ -128,7 +128,7 @@
       flex-shrink: 0;
       background: var(--bg2);
       border-right: 1px solid var(--border);
-      padding: 1.5rem 0;
+      padding: 1.5rem 0 4rem;
       position: fixed;
       top: 0; left: 0; bottom: 0;
       overflow-y: auto;
@@ -413,6 +413,116 @@
     #toast.show { display: flex; }
     #toast.error { color: var(--abandoned); }
 
+    /* ── Update banner ── */
+    #update-banner {
+      display: none;
+      position: fixed;
+      top: 1rem; left: 50%; transform: translateX(-50%);
+      background: var(--bg2);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 0.875rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      z-index: 400;
+      max-width: 440px; width: calc(100% - 2rem);
+      align-items: center; gap: 12px;
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    #update-banner.show { display: flex; }
+    .update-icon { font-size: 22px; flex-shrink: 0; }
+    .update-text { flex: 1; min-width: 0; }
+    .update-text strong { display: block; font-size: 13px; font-weight: 600; color: var(--text); }
+    .update-text span { font-size: 12px; color: var(--text3); }
+    .btn-update {
+      background: var(--accent); color: #1a1400; border: none;
+      padding: 7px 14px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0;
+    }
+    .btn-update:hover { background: var(--accent2); }
+    .btn-update-close {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 17px; padding: 2px; border-radius: 4px;
+      display: flex; align-items: center; transition: color 0.12s; flex-shrink: 0;
+    }
+    .btn-update-close:hover { color: var(--text); }
+
+    /* ── Sidebar footer ── */
+    .sidebar-footer {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .btn-settings {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 8px; border: none;
+      background: transparent; color: var(--text3);
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      cursor: pointer; text-align: left; transition: all 0.12s;
+    }
+    .btn-settings:hover { background: var(--bg3); color: var(--text2); }
+    .btn-settings i { font-size: 16px; }
+
+    /* ── About modal ── */
+    .about-header {
+      text-align: center;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .about-emoji { font-size: 44px; display: block; margin-bottom: 0.75rem; }
+    .about-name {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px; font-weight: 400; color: var(--text); letter-spacing: -0.3px;
+    }
+    .about-version { font-size: 12px; color: var(--text3); margin-top: 3px; }
+    .about-desc {
+      font-size: 14px; color: var(--text2); line-height: 1.65;
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .about-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .about-card-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text3); margin-bottom: 0.6rem;
+    }
+    .about-dev {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .about-dev-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--accent-bg); border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0; color: var(--accent2);
+      font-weight: 600; font-family: 'Instrument Serif', serif;
+    }
+    .about-dev-info strong { display: block; font-size: 14px; font-weight: 600; color: var(--text); }
+    .about-dev-info span  { display: block; font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .about-email {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--accent2); font-size: 13px; text-decoration: none;
+      margin-top: 8px; transition: color 0.12s;
+    }
+    .about-email:hover { color: var(--accent); }
+    .about-email i { font-size: 15px; }
+    .about-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.75rem; }
+    .about-tag {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px;
+      background: var(--accent-bg); color: var(--accent2); border: 1px solid rgba(212,168,75,0.2);
+    }
+    .about-footer {
+      text-align: center; font-size: 12px; color: var(--text3);
+      margin-top: 1.25rem; line-height: 1.6;
+    }
+
     /* ── Mobile ── */
     @media (max-width: 700px) {
       .sidebar { display: none; }
@@ -476,6 +586,12 @@
         <i class="ti ti-upload cat-icon"></i> Importer JSON
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
+    </div>
+    <!-- Footer avec paramètres -->
+    <div class="sidebar-footer">
+      <button class="btn-settings" onclick="openAbout()">
+        <i class="ti ti-settings"></i> Paramètres &amp; À propos
+      </button>
     </div>
   </aside>
 
@@ -567,6 +683,69 @@
       <button class="btn-secondary" onclick="closeModal()">Annuler</button>
       <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> Enregistrer</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ Update Banner ══ -->
+<div id="update-banner">
+  <div class="update-icon">🔄</div>
+  <div class="update-text">
+    <strong>Mise à jour disponible</strong>
+    <span>Une nouvelle version de l'app est prête</span>
+  </div>
+  <button class="btn-update" id="btn-do-update">Mettre à jour</button>
+  <button class="btn-update-close" id="btn-dismiss-update" title="Plus tard"><i class="ti ti-x"></i></button>
+</div>
+
+<!-- ══ About Modal ══ -->
+<div class="modal-bg" id="about-modal" onclick="closeAboutBg(event)">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <span class="modal-title">Paramètres &amp; À propos</span>
+      <button class="btn-close" onclick="closeAbout()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="about-header">
+      <span class="about-emoji">📚</span>
+      <div class="about-name">Ma Médiathèque</div>
+      <div class="about-version">Version 1.0 · PWA · Firebase</div>
+    </div>
+
+    <p class="about-desc">
+      Classifie et retrouve tous tes médias — séries, films, mangas, anime, livres, BD et plus.
+      Synchronisé en temps réel sur tous tes appareils grâce à Firebase.
+    </p>
+
+    <div class="about-card">
+      <div class="about-card-label">Développeur</div>
+      <div class="about-dev">
+        <div class="about-dev-avatar">A</div>
+        <div class="about-dev-info">
+          <strong>Ababacar Dieng</strong>
+          <span>Génie Logiciel</span>
+          <a class="about-email" href="mailto:diengbabacar666@gmail.com">
+            <i class="ti ti-mail"></i> diengbabacar666@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-card">
+      <div class="about-card-label">Technologies</div>
+      <div class="about-tags">
+        <span class="about-tag">Firebase Auth</span>
+        <span class="about-tag">Firestore</span>
+        <span class="about-tag">PWA</span>
+        <span class="about-tag">Service Worker</span>
+        <span class="about-tag">Vercel</span>
+        <span class="about-tag">HTML · CSS · JS</span>
+      </div>
+    </div>
+
+    <p class="about-footer">
+      Fait avec ❤️ pour ne plus jamais perdre ta liste.<br>
+      Toutes tes données t'appartiennent — stockées sur ton compte Google uniquement.
+    </p>
   </div>
 </div>
 
@@ -960,23 +1139,22 @@ document.addEventListener('keydown', e => {
 
 populateCatSelect();
 
+// ── Modal À propos ──
+function openAbout()      { document.getElementById('about-modal').classList.add('open'); }
+function closeAbout()     { document.getElementById('about-modal').classList.remove('open'); }
+function closeAboutBg(e)  { if (e.target === document.getElementById('about-modal')) closeAbout(); }
+
 // ── PWA Install ──
 let deferredInstallPrompt = null;
 const pwaBanner  = document.getElementById('pwa-banner');
 const btnInstall = document.getElementById('btn-install');
 const btnClose   = document.getElementById('btn-pwa-close');
 
-// Capture l'event Chrome/Android/Desktop avant qu'il soit déclenché auto
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-
-  // Ne montrer la bannière que si l'utilisateur n'a pas déjà dit "non"
   const dismissed = localStorage.getItem('pwa_dismissed');
-  if (!dismissed) {
-    // Petit délai pour ne pas bloquer l'écran de login
-    setTimeout(() => pwaBanner.classList.add('show'), 2500);
-  }
+  if (!dismissed) setTimeout(() => pwaBanner.classList.add('show'), 2500);
 });
 
 btnInstall.addEventListener('click', async () => {
@@ -993,20 +1171,74 @@ btnClose.addEventListener('click', () => {
   localStorage.setItem('pwa_dismissed', '1');
 });
 
-// Si l'app est déjà installée, masquer la bannière définitivement
 window.addEventListener('appinstalled', () => {
   pwaBanner.classList.remove('show');
   deferredInstallPrompt = null;
 });
 
-// Enregistrement du Service Worker
+// ── Service Worker + détection de mise à jour ──
+const updateBanner    = document.getElementById('update-banner');
+const btnDoUpdate     = document.getElementById('btn-do-update');
+const btnDismissUpdt  = document.getElementById('btn-dismiss-update');
+
+let newSWwaiting = null;   // référence au SW en attente
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-      console.warn('SW registration failed:', err);
+  window.addEventListener('load', async () => {
+
+    const reg = await navigator.serviceWorker.register('/sw.js');
+
+    // ── Cas 1 : un nouveau SW est déjà en waiting au chargement
+    if (reg.waiting) {
+      newSWwaiting = reg.waiting;
+      updateBanner.classList.add('show');
+    }
+
+    // ── Cas 2 : un nouveau SW arrive pendant la session
+    reg.addEventListener('updatefound', () => {
+      const installing = reg.installing;
+      installing.addEventListener('statechange', () => {
+        if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+          // Un nouveau SW est installé et attend — on prévient l'utilisateur
+          newSWwaiting = installing;
+          updateBanner.classList.add('show');
+        }
+      });
     });
+
+    // ── Cas 3 : le SW actif envoie SW_UPDATED (activation sur un autre onglet)
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data?.type === 'SW_UPDATED') {
+        // Rechargement automatique silencieux si l'app vient de s'activer
+        // (l'utilisateur ne travaille pas encore, pas de perte de données)
+        window.location.reload();
+      }
+    });
+
+    // Vérifie les mises à jour en arrière-plan toutes les 30 minutes
+    setInterval(() => reg.update(), 30 * 60 * 1000);
   });
 }
+
+// ── Bouton "Mettre à jour" : demande au SW d'activer, puis recharge ──
+btnDoUpdate.addEventListener('click', () => {
+  updateBanner.classList.remove('show');
+  if (newSWwaiting) {
+    // Demande au SW en waiting de s'activer immédiatement
+    newSWwaiting.postMessage({ type: 'SKIP_WAITING' });
+    // Attend que le controller change, puis recharge proprement
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    }, { once: true });
+  } else {
+    window.location.reload();
+  }
+});
+
+// ── Bouton "Plus tard" : masque la bannière sans recharger ──
+btnDismissUpdt.addEventListener('click', () => {
+  updateBanner.classList.remove('show');
+});
 </script>
 </body>
 </html>
