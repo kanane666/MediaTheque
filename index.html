@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ma Médiathèque</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0e0f12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Médiathèque" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -214,19 +220,53 @@
     }
     /* Sync indicator */
     .sync-dot {
-      display: inline-flex; align-items: center; gap: 5px;
+      display: inline-flex; align-items: center; gap: 6px;
       font-size: 12px; color: var(--text3);
     }
-    .sync-dot span {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--done); display: inline-block;
+    .sync-dot .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--done); display: inline-block; flex-shrink: 0;
     }
-    .sync-dot.syncing span {
+    .sync-dot.syncing .dot {
       background: var(--accent);
       animation: pulse 1s infinite;
     }
-    .sync-dot.offline span { background: var(--abandoned); }
+    .sync-dot.offline .dot { background: var(--abandoned); }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── PWA install banner ── */
+    #pwa-banner {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 300;
+      max-width: 420px; width: calc(100% - 2rem);
+      align-items: center; gap: 12px;
+    }
+    #pwa-banner.show { display: flex; }
+    .pwa-icon { font-size: 28px; flex-shrink: 0; }
+    .pwa-text { flex: 1; min-width: 0; }
+    .pwa-text strong { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+    .pwa-text span { font-size: 12px; color: var(--text3); }
+    .pwa-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .btn-install {
+      background: var(--accent); color: #1a1400; border: none;
+      padding: 7px 14px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-install:hover { background: var(--accent2); }
+    .btn-pwa-close {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 18px; padding: 2px; border-radius: 4px;
+      display: flex; align-items: center; transition: color 0.12s;
+    }
+    .btn-pwa-close:hover { color: var(--text); }
 
     .btn-primary {
       display: flex; align-items: center; gap: 6px;
@@ -446,7 +486,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="sync-dot" id="sync-indicator">
-          <span></span><span id="sync-label">Synchronisé</span>
+          <span class="dot"></span><span id="sync-label">Synchronisé</span>
         </div>
         <button class="btn-primary" onclick="openModal()">
           <i class="ti ti-plus"></i> Ajouter
@@ -530,6 +570,19 @@
   </div>
 </div>
 
+<!-- ══ PWA Install Banner ══ -->
+<div id="pwa-banner">
+  <div class="pwa-icon">📚</div>
+  <div class="pwa-text">
+    <strong>Installer l'application</strong>
+    <span>Accès rapide depuis ton écran d'accueil</span>
+  </div>
+  <div class="pwa-actions">
+    <button class="btn-install" id="btn-install">Installer</button>
+    <button class="btn-pwa-close" id="btn-pwa-close" title="Fermer"><i class="ti ti-x"></i></button>
+  </div>
+</div>
+
 <div id="toast"><i class="ti ti-circle-check"></i> <span id="toast-msg">Sauvegardé !</span></div>
 
 <!-- ══ FIREBASE SDK ══ -->
@@ -559,12 +612,12 @@ import {
 //  (voir README pour obtenir ces valeurs)
 // ══════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyBe_MW5-dyHwr69vs3yr-q2vMOnof5ysIc",
-  authDomain: "mediatheque-a4290.firebaseapp.com",
-  projectId: "mediatheque-a4290",
-  storageBucket: "mediatheque-a4290.firebasestorage.app",
-  messagingSenderId: "222863703899",
-  appId: "1:222863703899:web:ac10d4923c363f0864647e"
+  apiKey:            "REMPLACE_PAR_TON_API_KEY",
+  authDomain:        "REMPLACE_PAR_TON_AUTH_DOMAIN",
+  projectId:         "REMPLACE_PAR_TON_PROJECT_ID",
+  storageBucket:     "REMPLACE_PAR_TON_STORAGE_BUCKET",
+  messagingSenderId: "REMPLACE_PAR_TON_SENDER_ID",
+  appId:             "REMPLACE_PAR_TON_APP_ID"
 };
 // ══════════════════════════════════════════════
 
@@ -906,6 +959,54 @@ document.addEventListener('keydown', e => {
 });
 
 populateCatSelect();
+
+// ── PWA Install ──
+let deferredInstallPrompt = null;
+const pwaBanner  = document.getElementById('pwa-banner');
+const btnInstall = document.getElementById('btn-install');
+const btnClose   = document.getElementById('btn-pwa-close');
+
+// Capture l'event Chrome/Android/Desktop avant qu'il soit déclenché auto
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+
+  // Ne montrer la bannière que si l'utilisateur n'a pas déjà dit "non"
+  const dismissed = localStorage.getItem('pwa_dismissed');
+  if (!dismissed) {
+    // Petit délai pour ne pas bloquer l'écran de login
+    setTimeout(() => pwaBanner.classList.add('show'), 2500);
+  }
+});
+
+btnInstall.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  pwaBanner.classList.remove('show');
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') showToast('Application installée ✓');
+  deferredInstallPrompt = null;
+});
+
+btnClose.addEventListener('click', () => {
+  pwaBanner.classList.remove('show');
+  localStorage.setItem('pwa_dismissed', '1');
+});
+
+// Si l'app est déjà installée, masquer la bannière définitivement
+window.addEventListener('appinstalled', () => {
+  pwaBanner.classList.remove('show');
+  deferredInstallPrompt = null;
+});
+
+// Enregistrement du Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn('SW registration failed:', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
