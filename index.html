@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ma Médiathèque</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0f12;
+      --bg2: #16181d;
+      --bg3: #1e2028;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0ede8;
+      --text2: #8a8890;
+      --text3: #5a5860;
+      --accent: #d4a84b;
+      --accent2: #e8c97a;
+      --accent-bg: rgba(212,168,75,0.1);
+      --done: #4ade80;
+      --done-bg: rgba(74,222,128,0.1);
+      --progress: #fb923c;
+      --progress-bg: rgba(251,146,60,0.1);
+      --wishlist: #60a5fa;
+      --wishlist-bg: rgba(96,165,250,0.1);
+      --abandoned: #f87171;
+      --abandoned-bg: rgba(248,113,113,0.1);
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      padding: 0 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .sidebar-logo h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 20px;
+      color: var(--text);
+      font-weight: 400;
+      letter-spacing: -0.3px;
+    }
+    .sidebar-logo span {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-section {
+      padding: 0 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text3);
+      padding: 0 0.5rem;
+      margin-bottom: 4px;
+    }
+
+    .cat-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.12s;
+    }
+    .cat-btn:hover { background: var(--bg3); color: var(--text); }
+    .cat-btn.active { background: var(--accent-bg); color: var(--accent2); }
+    .cat-btn .cat-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .cat-btn .cat-count {
+      margin-left: auto;
+      font-size: 11px;
+      background: var(--bg3);
+      color: var(--text3);
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+    .cat-btn.active .cat-count { background: rgba(212,168,75,0.15); color: var(--accent); }
+
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 2rem 2.5rem;
+      max-width: 900px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .page-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+    .btn-primary {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--accent);
+      color: #1a1400;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--accent2); }
+
+    .btn-ghost {
+      display: flex; align-items: center; gap: 6px;
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+    }
+    .stat-num { font-size: 24px; font-weight: 600; color: var(--text); }
+    .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .stat-card.gold .stat-num { color: var(--accent2); }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .filters input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .filters input:focus { border-color: var(--accent); }
+    .filters input::placeholder { color: var(--text3); }
+    .filters select {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      min-width: 140px;
+    }
+    .filters select:focus { border-color: var(--accent); }
+
+    /* ── Modal ── */
+    .modal-bg {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .modal-title { font-size: 18px; font-weight: 500; color: var(--text); }
+    .btn-close {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 20px; padding: 2px;
+      border-radius: 6px; transition: color 0.12s;
+    }
+    .btn-close:hover { color: var(--text); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid.wide { grid-template-columns: 1fr; }
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field.span2 { grid-column: span 2; }
+    .form-field label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
+    .form-field input::placeholder, .form-field textarea::placeholder { color: var(--text3); }
+    .form-field textarea { resize: vertical; min-height: 72px; }
+    .form-field select option { background: var(--bg3); }
+
+    .star-picker { display: flex; gap: 6px; }
+    .star-btn {
+      background: transparent; border: none; cursor: pointer;
+      font-size: 22px; color: var(--text3); transition: color 0.1s, transform 0.1s;
+      padding: 0;
+    }
+    .star-btn:hover, .star-btn.active { color: var(--accent2); transform: scale(1.15); }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+    .btn-secondary {
+      background: transparent; border: 1px solid var(--border2); color: var(--text2);
+      padding: 8px 16px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; cursor: pointer; transition: all 0.12s;
+    }
+    .btn-secondary:hover { background: var(--bg3); color: var(--text); }
+
+    /* ── List ── */
+    .list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .list-count { font-size: 13px; color: var(--text3); }
+
+    .media-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .media-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.875rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.12s, background 0.12s;
+      cursor: default;
+    }
+    .media-card:hover { border-color: var(--border2); background: var(--bg3); }
+
+    .media-emoji {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--bg3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .media-body { flex: 1; min-width: 0; }
+    .media-title { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-sub { font-size: 12px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .media-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .stars { color: var(--accent); font-size: 13px; letter-spacing: -1px; }
+
+    .badge {
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-done { background: var(--done-bg); color: var(--done); }
+    .badge-progress { background: var(--progress-bg); color: var(--progress); }
+    .badge-wishlist { background: var(--wishlist-bg); color: var(--wishlist); }
+    .badge-abandoned { background: var(--abandoned-bg); color: var(--abandoned); }
+
+    .btn-del {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; padding: 5px; border-radius: 6px;
+      display: flex; align-items: center;
+      transition: color 0.12s;
+      font-size: 16px;
+    }
+    .btn-del:hover { color: var(--abandoned); }
+
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text3);
+    }
+    .empty i { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.35; }
+    .empty p { font-size: 15px; margin-bottom: 4px; }
+    .empty small { font-size: 13px; }
+
+    /* ── Export/Import ── */
+    .io-bar { display: flex; gap: 6px; }
+
+    /* ── Saved toast ── */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--bg2); border: 1px solid var(--border2);
+      color: var(--done);
+      padding: 10px 16px; border-radius: var(--radius);
+      font-size: 13px;
+      display: none;
+      align-items: center; gap: 8px;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    #toast.show { display: flex; }
+
+    /* ── Mobile ── */
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-field.span2 { grid-column: span 1; }
+      .media-right .badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Médiathèque</h1>
+      <span>ma collection</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Catégories</div>
+      <div id="sidebar-cats"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Données</div>
+      <button class="cat-btn" onclick="exportData()"><i class="ti ti-download cat-icon" aria-hidden="true"></i> Exporter JSON</button>
+      <label class="cat-btn" style="cursor:pointer;">
+        <i class="ti ti-upload cat-icon" aria-hidden="true"></i> Importer JSON
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
+      </label>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div id="page-title" class="page-title">Tout</div>
+      <div class="topbar-actions">
+        <button class="btn-primary" onclick="openModal()">
+          <i class="ti ti-plus" aria-hidden="true"></i> Ajouter
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="filters">
+      <input type="text" id="search" placeholder="🔍  Rechercher un titre, auteur..." oninput="renderList()" />
+      <select id="status-filter" onchange="renderList()">
+        <option value="">Tous les statuts</option>
+        <option value="done">✅ Terminé</option>
+        <option value="progress">🔄 En cours</option>
+        <option value="wishlist">🔖 À voir</option>
+        <option value="abandoned">❌ Abandonné</option>
+      </select>
+    </div>
+
+    <div class="list-header">
+      <span class="list-count" id="list-count"></span>
+    </div>
+
+    <div class="media-list" id="media-list"></div>
+  </main>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-bg" id="modal" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Nouveau média</span>
+      <button class="btn-close" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field span2">
+        <label>Titre *</label>
+        <input type="text" id="f-title" placeholder="Ex: One Piece" />
+      </div>
+      <div class="form-field">
+        <label>Catégorie</label>
+        <select id="f-cat"></select>
+      </div>
+      <div class="form-field">
+        <label>Statut</label>
+        <select id="f-status">
+          <option value="done">✅ Terminé</option>
+          <option value="progress">🔄 En cours</option>
+          <option value="wishlist">🔖 À voir</option>
+          <option value="abandoned">❌ Abandonné</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Auteur / Réalisateur</label>
+        <input type="text" id="f-author" placeholder="Ex: Eiichiro Oda" />
+      </div>
+      <div class="form-field">
+        <label>Année</label>
+        <input type="text" id="f-year" placeholder="Ex: 1997" />
+      </div>
+      <div class="form-field span2">
+        <label>Note (étoiles)</label>
+        <div class="star-picker" id="star-picker">
+          <button class="star-btn" data-v="1" onclick="setRating(1)">★</button>
+          <button class="star-btn" data-v="2" onclick="setRating(2)">★</button>
+          <button class="star-btn" data-v="3" onclick="setRating(3)">★</button>
+          <button class="star-btn" data-v="4" onclick="setRating(4)">★</button>
+          <button class="star-btn" data-v="5" onclick="setRating(5)">★</button>
+        </div>
+      </div>
+      <div class="form-field span2">
+        <label>Commentaire perso</label>
+        <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="saveItem()"><i class="ti ti-check" aria-hidden="true"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><i class="ti ti-circle-check" aria-hidden="true"></i> <span id="toast-msg">Sauvegardé !</span></div>
+
+<script>
+const CATS = [
+  { id: 'all',      label: 'Tout',        icon: '🗂️' },
+  { id: 'serie',    label: 'Séries',      icon: '📺' },
+  { id: 'film',     label: 'Films',       icon: '🎬' },
+  { id: 'theatre',  label: 'Théâtre',     icon: '🎭' },
+  { id: 'manga',    label: 'Manga',       icon: '📖' },
+  { id: 'anime',    label: 'Anime',       icon: '⛩️' },
+  { id: 'livre',    label: 'Livres',      icon: '📚' },
+  { id: 'bd',       label: 'BD',          icon: '🎨' },
+  { id: 'jeu',      label: 'Jeux vidéo',  icon: '🎮' },
+  { id: 'podcast',  label: 'Podcasts',    icon: '🎙️' },
+  { id: 'docu',     label: 'Docs',        icon: '🔭' },
+  { id: 'autre',    label: 'Autre',       icon: '✨' },
+];
+
+const STATUS = {
+  done:      { label: 'Terminé',    cls: 'badge-done' },
+  progress:  { label: 'En cours',   cls: 'badge-progress' },
+  wishlist:  { label: 'À voir',     cls: 'badge-wishlist' },
+  abandoned: { label: 'Abandonné',  cls: 'badge-abandoned' },
+};
+
+let items = [];
+let activeCat = 'all';
+let currentRating = 0;
+let toastTimer = null;
+
+// ── Storage ──
+function load() {
+  try { items = JSON.parse(localStorage.getItem('mediatheque_v2') || '[]'); } catch(e) { items = []; }
+}
+function save() {
+  localStorage.setItem('mediatheque_v2', JSON.stringify(items));
+  showToast('Sauvegardé ✓');
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── Sidebar ──
+function renderSidebar() {
+  const el = document.getElementById('sidebar-cats');
+  el.innerHTML = CATS.map(c => {
+    const cnt = c.id === 'all' ? items.length : items.filter(i => i.cat === c.id).length;
+    return `<button class="cat-btn ${activeCat === c.id ? 'active' : ''}" onclick="setcat('${c.id}')">
+      <span class="cat-icon">${c.icon}</span>
+      <span>${c.label}</span>
+      <span class="cat-count">${cnt}</span>
+    </button>`;
+  }).join('');
+}
+
+function setcat(id) {
+  activeCat = id;
+  const cat = CATS.find(c => c.id === id);
+  document.getElementById('page-title').textContent = cat.label;
+  renderSidebar();
+  renderList();
+}
+
+// ── Stats ──
+function renderStats() {
+  const total = items.length;
+  const done = items.filter(i => i.status === 'done').length;
+  const prog = items.filter(i => i.status === 'progress').length;
+  const wish = items.filter(i => i.status === 'wishlist').length;
+  const rated = items.filter(i => i.rating > 0);
+  const avg = rated.length ? (rated.reduce((s, i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--done)">${done}</div><div class="stat-label">Terminés</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--progress)">${prog}</div><div class="stat-label">En cours</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--wishlist)">${wish}</div><div class="stat-label">À voir</div></div>
+    <div class="stat-card gold"><div class="stat-num">${avg}</div><div class="stat-label">Note moyenne</div></div>
+  `;
+}
+
+// ── List ──
+function getFiltered() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const st = document.getElementById('status-filter').value;
+  return items.filter(it => {
+    if (activeCat !== 'all' && it.cat !== activeCat) return false;
+    if (st && it.status !== st) return false;
+    if (q && !it.title.toLowerCase().includes(q) && !(it.author || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderList() {
+  const filtered = getFiltered().slice().reverse();
+  const el = document.getElementById('media-list');
+  document.getElementById('list-count').textContent = `${filtered.length} média${filtered.length !== 1 ? 's' : ''}`;
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty">
+      <i class="ti ti-photo-off" aria-hidden="true"></i>
+      <p>Aucun média trouvé</p>
+      <small>Utilise le bouton "Ajouter" pour commencer ta collection</small>
+    </div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(item => {
+    const cat = CATS.find(c => c.id === item.cat) || CATS[CATS.length - 1];
+    const st = STATUS[item.status] || STATUS.done;
+    const stars = item.rating > 0 ? `<span class="stars">${'★'.repeat(item.rating)}</span>` : '';
+    const sub = [item.author, item.year].filter(Boolean).join(' · ');
+    return `<div class="media-card">
+      <div class="media-emoji">${cat.icon}</div>
+      <div class="media-body">
+        <div class="media-title">${esc(item.title)}</div>
+        ${sub ? `<div class="media-sub">${esc(sub)}${item.note ? ' — ' + esc(item.note) : ''}</div>` : (item.note ? `<div class="media-sub">${esc(item.note)}</div>` : '')}
+      </div>
+      <div class="media-right">
+        ${stars}
+        <span class="badge ${st.cls}">${st.label}</span>
+        <button class="btn-del" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Delete ──
+function del(id) {
+  items = items.filter(i => i.id !== id);
+  save();
+  renderStats();
+  renderSidebar();
+  renderList();
+}
+
+// ── Modal ──
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('f-title').focus();
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+function closeModalBg(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+function setRating(v) {
+  currentRating = currentRating === v ? 0 : v;
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.v) <= currentRating);
+  });
+}
+
+function saveItem() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { document.getElementById('f-title').focus(); return; }
+  const item = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    title,
+    cat: document.getElementById('f-cat').value,
+    status: document.getElementById('f-status').value,
+    author: document.getElementById('f-author').value.trim(),
+    year: document.getElementById('f-year').value.trim(),
+    rating: currentRating,
+    note: document.getElementById('f-note').value.trim(),
+    added: Date.now(),
+  };
+  items.push(item);
+  save();
+  resetForm();
+  closeModal();
+  renderStats();
+  renderSidebar();
+  renderList();
+}
+
+function resetForm() {
+  ['f-title','f-author','f-year','f-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-status').value = 'done';
+  setRating(0);
+}
+
+// ── Populate cat select ──
+function populateCatSelect() {
+  document.getElementById('f-cat').innerHTML = CATS
+    .filter(c => c.id !== 'all')
+    .map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`)
+    .join('');
+}
+
+// ── Export / Import ──
+function exportData() {
+  const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mediatheque-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('Exporté avec succès !');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      items = data;
+      save();
+      renderStats();
+      renderSidebar();
+      renderList();
+      showToast(`${items.length} médias importés !`);
+    } catch { showToast('Fichier invalide'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── Keyboard shortcut ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) {
+    if (document.activeElement.tagName !== 'TEXTAREA') saveItem();
+  }
+});
+
+// ── Init ──
+load();
+populateCatSelect();
+renderStats();
+renderSidebar();
+renderList();
+</script>
+</body>
+</html>
