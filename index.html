@@ -734,7 +734,50 @@
       margin-top: 1.25rem; line-height: 1.6;
     }
 
-    /* ── Mobile ── */
+    /* ── Quick status buttons ── */
+    .status-cycle-btn {
+      background: transparent; border: none; cursor: pointer;
+      padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+    }
+    .status-cycle-btn:hover { filter: brightness(1.25); transform: scale(1.05); }
+
+    /* edit button on list card */
+    .btn-edit {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; padding: 5px; border-radius: 6px;
+      display: flex; align-items: center; transition: color 0.12s; font-size: 16px;
+    }
+    .btn-edit:hover { color: var(--accent2); }
+
+    /* edit button on book cover */
+    .book-edit-btn {
+      position: absolute; bottom: 5px; right: 8px;
+      background: rgba(0,0,0,0.6); border: none; color: var(--text3);
+      width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      font-size: 11px; z-index: 4; transition: color 0.12s;
+    }
+    .book-edit-btn:hover { color: var(--accent2); }
+    .media-grid .media-card:hover .book-edit-btn { display: flex; }
+
+    /* quick status popover */
+    .status-popover {
+      position: absolute; z-index: 300;
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--radius-lg); padding: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; gap: 4px;
+      min-width: 150px;
+    }
+    .status-popover button {
+      background: transparent; border: none; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 7px 12px; border-radius: 8px; cursor: pointer;
+      text-align: left; transition: background 0.1s; display: flex; align-items: center; gap: 8px;
+    }
+    .status-popover button:hover { background: var(--bg3); }
+    .status-popover button.current { background: var(--accent-bg); color: var(--accent2); font-weight: 600; }
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .main { margin-left: 0; padding: 1rem; }
@@ -852,7 +895,7 @@
 <div class="modal-bg" id="modal" onclick="closeModalBg(event)">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">Nouveau média</span>
+      <span class="modal-title" id="modal-title">Nouveau média</span>
       <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="form-grid">
@@ -898,7 +941,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Annuler</button>
-      <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> Enregistrer</button>
+      <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> <span id="btn-save-label">Enregistrer</span></button>
     </div>
   </div>
 </div>
@@ -1018,6 +1061,7 @@ import {
   collection,
   doc,
   addDoc,
+  updateDoc,
   deleteDoc,
   onSnapshot,
   query,
@@ -1191,7 +1235,7 @@ function subscribeToItems(uid) {
   );
 }
 
-// ── Ajouter un média ──
+// ── Ajouter / Modifier un média ──
 window.saveItem = async () => {
   const title = document.getElementById('f-title').value.trim();
   if (!title) { document.getElementById('f-title').focus(); return; }
@@ -1200,7 +1244,7 @@ window.saveItem = async () => {
   const btn = document.getElementById('btn-save-item');
   btn.disabled = true;
 
-  const item = {
+  const data = {
     title,
     cat:    document.getElementById('f-cat').value,
     status: document.getElementById('f-status').value,
@@ -1208,15 +1252,22 @@ window.saveItem = async () => {
     year:   document.getElementById('f-year').value.trim(),
     rating: currentRating,
     note:   document.getElementById('f-note').value.trim(),
-    added:  serverTimestamp(),
   };
 
   try {
     setSyncState('syncing');
-    await addDoc(collection(db, 'users', currentUser.uid, 'items'), item);
+    if (editingId) {
+      // Mise à jour
+      await updateDoc(doc(db, 'users', currentUser.uid, 'items', editingId), data);
+      showToast('Mis à jour ✓');
+    } else {
+      // Création
+      data.added = serverTimestamp();
+      await addDoc(collection(db, 'users', currentUser.uid, 'items'), data);
+      showToast('Enregistré ✓');
+    }
     resetForm();
     closeModal();
-    showToast('Enregistré ✓');
   } catch(e) {
     showToast('Erreur d\'enregistrement', true);
     console.error(e);
@@ -1238,7 +1289,72 @@ window.del = async (id) => {
   }
 };
 
-// ── Importer depuis JSON ──
+// ── Changer le statut rapidement ──
+let statusPopoverItemId = null;
+let statusPopoverEl = null;
+
+window.openStatusPopover = function(e, id) {
+  e.stopPropagation();
+  closeStatusPopover(); // ferme l'éventuel précédent
+
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  statusPopoverItemId = id;
+
+  const pop = document.createElement('div');
+  pop.className = 'status-popover';
+  pop.id = 'status-popover';
+
+  const statuses = [
+    { key: 'done',      label: '✅ Terminé' },
+    { key: 'progress',  label: '🔄 En cours' },
+    { key: 'wishlist',  label: '🔖 À voir' },
+    { key: 'abandoned', label: '❌ Abandonné' },
+  ];
+
+  pop.innerHTML = statuses.map(s =>
+    `<button class="${item.status === s.key ? 'current' : ''}" onclick="setStatusQuick('${id}','${s.key}')">${s.label}</button>`
+  ).join('');
+
+  document.body.appendChild(pop);
+  statusPopoverEl = pop;
+
+  // Position near click
+  const rect = e.currentTarget.getBoundingClientRect();
+  let top  = rect.bottom + window.scrollY + 6;
+  let left = rect.left + window.scrollX;
+  // keep in viewport
+  if (left + 160 > window.innerWidth) left = window.innerWidth - 168;
+  pop.style.top  = top + 'px';
+  pop.style.left = left + 'px';
+
+  setTimeout(() => document.addEventListener('click', statusPopoverOutside, { once: true }), 50);
+};
+
+function statusPopoverOutside(e) {
+  if (statusPopoverEl && !statusPopoverEl.contains(e.target)) closeStatusPopover();
+  else if (statusPopoverEl) document.addEventListener('click', statusPopoverOutside, { once: true });
+}
+
+function closeStatusPopover() {
+  const el = document.getElementById('status-popover');
+  if (el) el.remove();
+  statusPopoverEl = null;
+  statusPopoverItemId = null;
+}
+
+window.setStatusQuick = async function(id, newStatus) {
+  closeStatusPopover();
+  if (!currentUser) return;
+  try {
+    setSyncState('syncing');
+    await updateDoc(doc(db, 'users', currentUser.uid, 'items', id), { status: newStatus });
+    showToast('Statut mis à jour ✓');
+  } catch(e) {
+    showToast('Erreur de mise à jour', true);
+    console.error(e);
+  }
+};
 window.importData = async (e) => {
   const file = e.target.files[0];
   if (!file || !currentUser) return;
@@ -1453,7 +1569,8 @@ function renderList() {
           <div class="book-cover-bg"></div>
           <div class="book-cover-emoji">${cat.icon}</div>
           <div class="book-cover-title">${esc(item.title)}</div>
-          <div class="book-status-dot ${item.status}" title="${st.label}"></div>
+          <div class="book-status-dot ${item.status}" title="${st.label}" onclick="openStatusPopover(event,'${item.id}')" style="cursor:pointer;"></div>
+          <button class="book-edit-btn" onclick="openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
           <button class="book-del-btn" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
         </div>
         <div class="book-meta">
@@ -1479,7 +1596,8 @@ function renderList() {
         </div>
         <div class="media-right">
           ${stars}
-          <span class="badge ${st.cls}">${st.label}</span>
+          <button class="status-cycle-btn badge ${st.cls}" onclick="openStatusPopover(event,'${item.id}')" title="Changer le statut">${st.label}</button>
+          <button class="btn-edit" onclick="openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
           <button class="btn-del" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
         </div>
       </div>`;
@@ -1491,9 +1609,51 @@ function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Modal ──
-function openModal()  { document.getElementById('modal').classList.add('open'); document.getElementById('f-title').focus(); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
+// ── Modal (création + édition) ──
+let editingId = null; // null = création, string = id du média en cours d'édition
+
+function openModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Nouveau média';
+  document.getElementById('btn-save-label').textContent = 'Enregistrer';
+  resetForm();
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('f-title').focus();
+}
+
+window.openEditModal = function(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Modifier le média';
+  document.getElementById('btn-save-label').textContent = 'Mettre à jour';
+
+  // Pré-remplir le formulaire
+  document.getElementById('f-title').value  = item.title  || '';
+  document.getElementById('f-author').value = item.author || '';
+  document.getElementById('f-year').value   = item.year   || '';
+  document.getElementById('f-note').value   = item.note   || '';
+  document.getElementById('f-status').value = item.status || 'done';
+
+  // Catégorie
+  populateCatSelect();
+  const catSel = document.getElementById('f-cat');
+  if ([...catSel.options].some(o => o.value === item.cat)) catSel.value = item.cat;
+
+  // Étoiles
+  currentRating = item.rating || 0;
+  document.querySelectorAll('.star-btn').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.v) <= currentRating)
+  );
+
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('f-title').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+}
 function closeModalBg(e) { if (e.target === document.getElementById('modal')) closeModal(); }
 
 function setRating(v) {
