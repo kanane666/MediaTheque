@@ -778,6 +778,71 @@
     }
     .status-popover button:hover { background: var(--bg3); }
     .status-popover button.current { background: var(--accent-bg); color: var(--accent2); font-weight: 600; }
+
+    /* ── Cover search / upload ── */
+    .cover-section {
+      grid-column: span 2;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .cover-preview {
+      width: 80px; height: 120px; flex-shrink: 0;
+      border-radius: 4px 8px 8px 4px;
+      background: var(--bg3); border: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 28px; color: var(--text3); overflow: hidden; position: relative;
+      box-shadow: -3px 3px 8px rgba(0,0,0,0.35);
+    }
+    .cover-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-clear {
+      position: absolute; top: 3px; right: 3px;
+      background: rgba(0,0,0,0.75); border: none; color: #fff;
+      width: 18px; height: 18px; border-radius: 50%; font-size: 10px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;
+    }
+    .cover-actions { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .cover-search-row { display: flex; gap: 6px; }
+    .cover-search-input {
+      flex: 1; padding: 7px 10px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg3);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; min-width: 0;
+    }
+    .cover-search-input:focus { border-color: var(--border2); }
+    .btn-search-cover {
+      background: var(--bg3); border: 1px solid var(--border2);
+      color: var(--text2); padding: 7px 12px; border-radius: var(--radius);
+      font-size: 13px; cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 5px; transition: all 0.12s; flex-shrink: 0;
+    }
+    .btn-search-cover:hover { background: var(--accent-bg); color: var(--accent2); border-color: var(--accent); }
+    .btn-search-cover:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cover-results { display: flex; gap: 7px; flex-wrap: wrap; }
+    .cover-result-item {
+      width: 52px; height: 76px; border-radius: 3px 6px 6px 3px;
+      overflow: hidden; cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.12s, transform 0.12s;
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.4); flex-shrink: 0; background: var(--bg3);
+    }
+    .cover-result-item:hover { transform: translateY(-2px) scale(1.06); border-color: var(--border2); }
+    .cover-result-item.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .cover-result-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-upload-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text3); cursor: pointer;
+      padding: 5px 8px; border-radius: 6px; border: 1px dashed var(--border);
+      transition: all 0.12s; width: fit-content;
+    }
+    .cover-upload-label:hover { border-color: var(--border2); color: var(--text2); background: var(--bg3); }
+    .cover-status-msg { font-size: 12px; color: var(--text3); }
+
+    /* book cover with real photo */
+    .book-cover.has-img .book-cover-bg,
+    .book-cover.has-img .book-cover-emoji,
+    .book-cover.has-img .book-cover-title { display: none; }
+    .book-cover-img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: block; border-radius: 3px 7px 7px 3px;
+    }
+
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .main { margin-left: 0; padding: 1rem; }
@@ -899,6 +964,23 @@
       <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="form-grid">
+      <!-- ── Couverture ── -->
+      <div class="form-field cover-section">
+        <div class="cover-preview" id="cover-preview">
+          <span id="cover-preview-emoji">🖼️</span>
+        </div>
+        <div class="cover-actions">
+          <div class="cover-search-row">
+            <input class="cover-search-input" id="cover-search-input" placeholder="Chercher une couverture…" onkeydown="if(event.key==='Enter'){event.preventDefault();searchCover();}" />
+            <button class="btn-search-cover" id="btn-search-cover" onclick="searchCover()"><i class="ti ti-search"></i> Chercher</button>
+          </div>
+          <div class="cover-results" id="cover-results"></div>
+          <label class="cover-upload-label">
+            <i class="ti ti-upload"></i> Uploader une image
+            <input type="file" accept="image/*" id="cover-upload-input" style="display:none" onchange="handleCoverUpload(event)" />
+          </label>
+        </div>
+      </div>
       <div class="form-field span2">
         <label>Titre *</label>
         <input type="text" id="f-title" placeholder="Ex: One Piece" />
@@ -1246,12 +1328,13 @@ window.saveItem = async () => {
 
   const data = {
     title,
-    cat:    document.getElementById('f-cat').value,
-    status: document.getElementById('f-status').value,
-    author: document.getElementById('f-author').value.trim(),
-    year:   document.getElementById('f-year').value.trim(),
-    rating: currentRating,
-    note:   document.getElementById('f-note').value.trim(),
+    cat:      document.getElementById('f-cat').value,
+    status:   document.getElementById('f-status').value,
+    author:   document.getElementById('f-author').value.trim(),
+    year:     document.getElementById('f-year').value.trim(),
+    rating:   currentRating,
+    note:     document.getElementById('f-note').value.trim(),
+    coverUrl: currentCoverUrl || '',
   };
 
   try {
@@ -1565,8 +1648,9 @@ function renderList() {
       const sub   = [item.author, item.year].filter(Boolean).join(' · ');
       const coverCls = getCoverClass(cat.id);
       return `<div class="media-card">
-        <div class="book-cover ${coverCls}">
+        <div class="book-cover ${coverCls} ${item.coverUrl ? 'has-img' : ''}">
           <div class="book-cover-bg"></div>
+          ${item.coverUrl ? `<img class="book-cover-img" src="${esc(item.coverUrl)}" alt="${esc(item.title)}" loading="lazy" />` : ''}
           <div class="book-cover-emoji">${cat.icon}</div>
           <div class="book-cover-title">${esc(item.title)}</div>
           <div class="book-status-dot ${item.status}" title="${st.label}" onclick="openStatusPopover(event,'${item.id}')" style="cursor:pointer;"></div>
@@ -1617,6 +1701,7 @@ function openModal() {
   document.getElementById('modal-title').textContent = 'Nouveau média';
   document.getElementById('btn-save-label').textContent = 'Enregistrer';
   resetForm();
+  currentCoverUrl = '';
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-title').focus();
 }
@@ -1628,23 +1713,25 @@ window.openEditModal = function(id) {
   document.getElementById('modal-title').textContent = 'Modifier le média';
   document.getElementById('btn-save-label').textContent = 'Mettre à jour';
 
-  // Pré-remplir le formulaire
   document.getElementById('f-title').value  = item.title  || '';
   document.getElementById('f-author').value = item.author || '';
   document.getElementById('f-year').value   = item.year   || '';
   document.getElementById('f-note').value   = item.note   || '';
   document.getElementById('f-status').value = item.status || 'done';
 
-  // Catégorie
   populateCatSelect();
   const catSel = document.getElementById('f-cat');
   if ([...catSel.options].some(o => o.value === item.cat)) catSel.value = item.cat;
 
-  // Étoiles
   currentRating = item.rating || 0;
   document.querySelectorAll('.star-btn').forEach(b =>
     b.classList.toggle('active', parseInt(b.dataset.v) <= currentRating)
   );
+
+  // Couverture
+  document.getElementById('cover-search-input').value = item.title || '';
+  document.getElementById('cover-results').innerHTML = '';
+  setCoverPreview(item.coverUrl || null);
 
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-title').focus();
@@ -1666,7 +1753,10 @@ function setRating(v) {
 function resetForm() {
   ['f-title','f-author','f-year','f-note'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-status').value = 'done';
+  document.getElementById('cover-search-input').value = '';
+  document.getElementById('cover-results').innerHTML = '';
   setRating(0);
+  setCoverPreview(null);
 }
 
 // ── Export ──
@@ -1685,6 +1775,114 @@ function populateCatSelect() {
     .map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`)
     .join('');
 }
+
+// ══════════════════════════════════
+// ── Couverture : recherche & upload ──
+// ══════════════════════════════════
+let currentCoverUrl = '';
+
+function setCoverPreview(url) {
+  currentCoverUrl = url || '';
+  const preview = document.getElementById('cover-preview');
+  const emoji   = document.getElementById('cover-preview-emoji');
+  // Remove old img & clear btn
+  preview.querySelectorAll('img, .cover-clear').forEach(el => el.remove());
+  if (url) {
+    emoji.style.display = 'none';
+    const img = document.createElement('img');
+    img.src = url;
+    img.onerror = () => setCoverPreview(null);
+    preview.appendChild(img);
+    const btn = document.createElement('button');
+    btn.className = 'cover-clear';
+    btn.title = 'Supprimer la couverture';
+    btn.innerHTML = '✕';
+    btn.onclick = (e) => { e.preventDefault(); setCoverPreview(null); clearCoverResults(); };
+    preview.appendChild(btn);
+  } else {
+    emoji.style.display = '';
+  }
+}
+
+function clearCoverResults() {
+  document.getElementById('cover-results').innerHTML = '';
+  document.querySelectorAll('.cover-result-item').forEach(el => el.classList.remove('selected'));
+}
+
+// ── Open Library search ──
+async function searchCover() {
+  const query = document.getElementById('cover-search-input').value.trim()
+             || document.getElementById('f-title').value.trim();
+  if (!query) return;
+
+  const btn = document.getElementById('btn-search-cover');
+  const resultsEl = document.getElementById('cover-results');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> …';
+  resultsEl.innerHTML = '<span class="cover-status-msg">Recherche en cours…</span>';
+
+  try {
+    const q = encodeURIComponent(query);
+    const res = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=15&fields=key,cover_i,title,author_name`);
+    const data = await res.json();
+
+    const covers = (data.docs || [])
+      .filter(d => d.cover_i)
+      .slice(0, 8)
+      .map(d => ({
+        url: `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`,
+        title: d.title || '',
+      }));
+
+    if (!covers.length) {
+      resultsEl.innerHTML = '<span class="cover-status-msg">Aucune couverture trouvée. Essaie un autre titre ou uploade une image.</span>';
+      return;
+    }
+
+    resultsEl.innerHTML = covers.map((c, i) =>
+      `<div class="cover-result-item" title="${esc(c.title)}" onclick="selectCoverResult(this, '${esc(c.url)}')">
+        <img src="${esc(c.url)}" loading="lazy" alt="${esc(c.title)}" />
+      </div>`
+    ).join('');
+
+  } catch(e) {
+    resultsEl.innerHTML = '<span class="cover-status-msg">Erreur réseau. Vérifie ta connexion.</span>';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-search"></i> Chercher';
+  }
+}
+
+function selectCoverResult(el, url) {
+  document.querySelectorAll('.cover-result-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  setCoverPreview(url);
+}
+
+// ── Upload local ──
+function handleCoverUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Image trop lourde (max 5 Mo)', true); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    setCoverPreview(ev.target.result);
+    clearCoverResults();
+  };
+  reader.readAsDataURL(file);
+  // reset input so same file can be re-uploaded
+  e.target.value = '';
+}
+
+// auto-fill cover search input when title changes
+document.getElementById('f-title').addEventListener('input', function() {
+  const searchInput = document.getElementById('cover-search-input');
+  if (!searchInput.value || searchInput.value === this._lastAutoVal) {
+    searchInput.value = this.value;
+    this._lastAutoVal = this.value;
+  }
+});
 
 // ── Keyboard ──
 document.addEventListener('keydown', e => {
