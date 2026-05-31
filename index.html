@@ -333,13 +333,34 @@
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.65); z-index: 100;
       align-items: center; justify-content: center; padding: 1rem;
+      overflow-y: auto;
     }
     .modal-bg.open { display: flex; }
     .modal {
       background: var(--bg2); border: 1px solid var(--border2);
       border-radius: var(--radius-lg); padding: 1.75rem;
-      width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+      width: 100%; max-width: 520px;
+      overflow-x: hidden;
+      margin: auto;
     }
+
+    /* ── Confirm delete modal ── */
+    .confirm-modal {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--radius-lg); padding: 1.75rem;
+      width: 100%; max-width: 380px; margin: auto; text-align: center;
+    }
+    .confirm-icon { font-size: 40px; margin-bottom: 0.75rem; }
+    .confirm-title { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; }
+    .confirm-sub { font-size: 14px; color: var(--text3); margin-bottom: 1.5rem; line-height: 1.5; }
+    .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+    .btn-confirm-del {
+      background: var(--abandoned); color: #fff; border: none;
+      padding: 10px 22px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-confirm-del:hover { opacity: 0.85; }
     .modal-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 1.25rem;
@@ -352,8 +373,11 @@
     }
     .btn-close:hover { color: var(--text); }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      width: 100%; box-sizing: border-box;
+    }
+    .form-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .form-field.span2 { grid-column: span 2; }
     .form-field label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
     .form-field input, .form-field select, .form-field textarea {
@@ -361,6 +385,7 @@
       color: var(--text); padding: 9px 12px; border-radius: var(--radius);
       font-family: 'DM Sans', sans-serif; font-size: 14px;
       outline: none; transition: border-color 0.12s;
+      width: 100%; box-sizing: border-box; min-width: 0;
     }
     .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
     .form-field input::placeholder, .form-field textarea::placeholder { color: var(--text3); }
@@ -799,6 +824,7 @@
     .cover-section {
       grid-column: span 2;
       display: flex; gap: 12px; align-items: flex-start;
+      min-width: 0; overflow: hidden;
     }
     .cover-preview {
       width: 80px; height: 120px; flex-shrink: 0;
@@ -971,6 +997,9 @@
       .form-field.span2 { grid-column: span 1; }
       .media-list .media-right .badge { display: none; }
       .media-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+      .modal { padding: 1.25rem; }
+      .cover-section { flex-direction: column; }
+      .cover-preview { width: 100%; height: 160px; border-radius: var(--radius-lg); }
     }
   </style>
 </head>
@@ -1177,6 +1206,19 @@
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Annuler</button>
       <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> <span id="btn-save-label">Enregistrer</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Confirm Delete Modal ══ -->
+<div class="modal-bg" id="confirm-del-modal" onclick="closeConfirmDelBg(event)">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Supprimer ce média ?</div>
+    <div class="confirm-sub" id="confirm-del-sub">Cette action est irréversible.</div>
+    <div class="confirm-actions">
+      <button class="btn-secondary" onclick="closeConfirmDel()">Annuler</button>
+      <button class="btn-confirm-del" id="btn-confirm-del-ok" onclick="confirmDelExecute()"><i class="ti ti-trash"></i> Supprimer</button>
     </div>
   </div>
 </div>
@@ -1540,8 +1582,30 @@ window.saveItem = async () => {
 };
 
 // ── Supprimer un média ──
-window.del = async (id) => {
-  if (!currentUser) return;
+// ── Delete avec confirmation ──
+let pendingDelId = null;
+
+window.del = function(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pendingDelId = id;
+  document.getElementById('confirm-del-sub').textContent =
+    `"${item.title}" sera définitivement supprimé.`;
+  document.getElementById('confirm-del-modal').classList.add('open');
+};
+
+function closeConfirmDel() {
+  document.getElementById('confirm-del-modal').classList.remove('open');
+  pendingDelId = null;
+}
+function closeConfirmDelBg(e) {
+  if (e.target === document.getElementById('confirm-del-modal')) closeConfirmDel();
+}
+
+async function confirmDelExecute() {
+  if (!pendingDelId || !currentUser) return;
+  const id = pendingDelId;
+  closeConfirmDel();
   try {
     setSyncState('syncing');
     await deleteDoc(doc(db, 'users', currentUser.uid, 'items', id));
@@ -1550,7 +1614,7 @@ window.del = async (id) => {
     showToast('Erreur de suppression', true);
     console.error(e);
   }
-};
+}
 
 // ── Changer le statut rapidement ──
 let statusPopoverItemId = null;
@@ -2560,7 +2624,7 @@ function closeDrawerBg(e) {
 
 // ── Keyboard ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeCatModal(); closeEmojiPicker(); closeDrawer(); closeTimeModal(); }
+  if (e.key === 'Escape') { closeModal(); closeCatModal(); closeEmojiPicker(); closeDrawer(); closeTimeModal(); closeConfirmDel(); }
   if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) {
     if (document.activeElement.tagName !== 'TEXTAREA') saveItem();
   }
