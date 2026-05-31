@@ -292,6 +292,22 @@
     .stat-num { font-size: 24px; font-weight: 600; color: var(--text); }
     .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
     .stat-card.gold .stat-num { color: var(--accent2); }
+    .stat-card.time .stat-num { color: #a78bfa; font-size: 20px; }
+    .stat-card.time-cat { cursor: pointer; transition: border-color 0.12s; }
+    .stat-card.time-cat:hover { border-color: var(--border2); }
+
+    /* time modal */
+    .time-modal-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .time-modal-row:last-child { border-bottom: none; }
+    .time-modal-cat { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); }
+    .time-modal-val { font-size: 14px; font-weight: 500; color: #a78bfa; }
+    .time-fun-box {
+      background: linear-gradient(135deg, rgba(167,139,250,0.12), rgba(212,168,75,0.08));
+      border: 1px solid rgba(167,139,250,0.25); border-radius: var(--radius-lg);
+      padding: 1.25rem; text-align: center; margin-bottom: 1rem;
+    }
+    .time-fun-num { font-family: 'Instrument Serif', serif; font-size: 36px; color: #a78bfa; line-height: 1.1; }
+    .time-fun-label { font-size: 13px; color: var(--text3); margin-top: 4px; }
 
     /* ── Filters ── */
     .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
@@ -843,6 +859,111 @@
       object-fit: cover; display: block; border-radius: 3px 7px 7px 3px;
     }
 
+    /* ── Drawer détail ── */
+    .drawer-bg {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+    }
+    .drawer-bg.open { display: flex; justify-content: flex-end; }
+    .drawer {
+      background: var(--bg2); width: 380px; max-width: 95vw;
+      height: 100vh; overflow-y: auto;
+      border-left: 1px solid var(--border2);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      animation: slideIn 0.22s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .drawer-cover-wrap { position: relative; width: 100%; height: 220px; flex-shrink: 0; }
+    .drawer-cover { width: 100%; height: 220px; object-fit: cover; display: block; }
+    .drawer-cover-placeholder {
+      width: 100%; height: 220px; display: flex; align-items: center;
+      justify-content: center; font-size: 72px;
+      background: var(--bg3); border-bottom: 1px solid var(--border);
+    }
+    .drawer-body { padding: 1.5rem; flex: 1; }
+    .drawer-title {
+      font-family: 'Instrument Serif', serif; font-size: 22px;
+      font-weight: 400; color: var(--text); margin-bottom: 6px; line-height: 1.3;
+    }
+    .drawer-meta { font-size: 13px; color: var(--text3); margin-bottom: 12px; }
+    .drawer-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .drawer-stars { color: var(--accent); font-size: 18px; letter-spacing: -1px; margin-bottom: 14px; }
+    .drawer-section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .drawer-note {
+      font-size: 14px; color: var(--text2); line-height: 1.6;
+      background: var(--bg3); border-radius: var(--radius); padding: 10px 12px;
+      margin-bottom: 14px; border: 1px solid var(--border);
+    }
+    .drawer-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .drawer-tag {
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 20px; font-size: 12px; color: var(--text2);
+    }
+    .drawer-progress-bar-wrap {
+      height: 6px; background: var(--bg3); border-radius: 99px; overflow: hidden; margin-bottom: 6px;
+    }
+    .drawer-progress-bar { height: 100%; background: var(--progress); border-radius: 99px; transition: width 0.3s; }
+    .drawer-progress-label { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+    .drawer-actions { display: flex; gap: 8px; padding: 1.25rem 1.5rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .drawer-actions .btn-primary, .drawer-actions .btn-secondary { flex: 1; }
+    .btn-drawer-del {
+      background: var(--abandoned-bg); border: 1px solid var(--abandoned);
+      color: var(--abandoned); padding: 8px 14px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: all 0.12s; white-space: nowrap;
+    }
+    .btn-drawer-del:hover { background: var(--abandoned); color: #fff; }
+    .drawer-close {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.65); border: none; color: var(--text2);
+      width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: color 0.12s; z-index: 5;
+    }
+    .drawer-close:hover { color: var(--text); }
+
+    /* ── Tags input in form ── */
+    .tags-input-wrap {
+      display: flex; flex-wrap: wrap; gap: 5px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 6px 8px; cursor: text; min-height: 40px; align-items: center;
+    }
+    .tags-input-wrap:focus-within { border-color: var(--border2); }
+    .tag-chip {
+      background: var(--bg2); border: 1px solid var(--border2);
+      padding: 2px 8px; border-radius: 20px; font-size: 12px; color: var(--text2);
+      display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .tag-chip button { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 12px; padding: 0; line-height: 1; }
+    .tag-chip button:hover { color: var(--abandoned); }
+    .tags-real-input {
+      border: none; background: transparent; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; min-width: 80px; flex: 1;
+    }
+
+    /* ── Progress fields ── */
+    .progress-fields { display: flex; gap: 8px; align-items: center; }
+    .progress-fields input { flex: 1; }
+    .progress-sep { color: var(--text3); font-size: 16px; }
+
+    /* ── Sort & filter bar ── */
+    #sort-select {
+      background: var(--bg2); border: 1px solid var(--border); color: var(--text2);
+      padding: 5px 10px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+    }
+    .tag-filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .tag-filter-btn {
+      padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent; color: var(--text3);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .tag-filter-btn:hover, .tag-filter-btn.active { background: var(--accent-bg); color: var(--accent2); border-color: var(--accent); }
+
+    /* book cover on grid: click cursor */
+    .media-grid .media-card { cursor: pointer; }
+
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .main { margin-left: 0; padding: 1rem; }
@@ -942,7 +1063,15 @@
         <option value="wishlist">🔖 À voir</option>
         <option value="abandoned">❌ Abandonné</option>
       </select>
+      <select id="sort-select" onchange="renderList()">
+        <option value="date_desc">Plus récents</option>
+        <option value="date_asc">Plus anciens</option>
+        <option value="rating_desc">Mieux notés</option>
+        <option value="title_asc">Titre A→Z</option>
+        <option value="title_desc">Titre Z→A</option>
+      </select>
     </div>
+    <div class="tag-filter-bar" id="tag-filter-bar"></div>
 
     <div class="list-header">
       <span class="list-count" id="list-count"></span>
@@ -1020,11 +1149,57 @@
         <label>Commentaire perso</label>
         <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford…"></textarea>
       </div>
+      <div class="form-field span2">
+        <label>Tags <span style="color:var(--text3);font-weight:400">(Entrée ou virgule pour valider)</span></label>
+        <div class="tags-input-wrap" id="tags-input-wrap" onclick="document.getElementById('tags-real-input').focus()">
+          <input class="tags-real-input" id="tags-real-input" placeholder="thriller, feelgood…" autocomplete="off" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Progression</label>
+        <div class="progress-fields">
+          <input type="number" id="f-prog-cur" placeholder="Ex: 12" min="0" />
+          <span class="progress-sep">/</span>
+          <input type="number" id="f-prog-tot" placeholder="Ex: 25" min="0" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Durée <span style="color:var(--text3);font-weight:400" id="dur-hint">(min par épisode)</span></label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" id="f-duration" placeholder="Ex: 45" min="0" style="flex:1" />
+          <button type="button" id="btn-fetch-dur" onclick="fetchDuration()" title="Récupérer automatiquement" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:7px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all 0.12s">
+            <i class="ti ti-wand"></i> Auto
+          </button>
+        </div>
+        <div id="dur-status" style="font-size:11px;color:var(--text3);margin-top:4px;min-height:14px"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Annuler</button>
       <button class="btn-primary" id="btn-save-item" onclick="saveItem()"><i class="ti ti-check"></i> <span id="btn-save-label">Enregistrer</span></button>
     </div>
+  </div>
+</div>
+
+<!-- ══ Time Stats Modal ══ -->
+<div class="modal-bg" id="time-modal" onclick="closeTimeModalBg(event)">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">⏱ Temps de visionnage</span>
+      <button class="btn-close" onclick="closeTimeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="time-modal-content" style="padding:0 0.25rem"></div>
+  </div>
+</div>
+
+<!-- ══ DRAWER Détail ══ -->
+<div class="drawer-bg" id="drawer-bg" onclick="closeDrawerBg(event)">
+  <div class="drawer" id="drawer">
+    <div class="drawer-cover-wrap" id="drawer-cover-wrap">
+      <button class="drawer-close" onclick="closeDrawer()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-actions" id="drawer-actions"></div>
   </div>
 </div>
 
@@ -1307,6 +1482,7 @@ function subscribeToItems(uid) {
       renderStats();
       renderSidebar();
       renderList();
+      renderTagFilterBar();
       populateCatSelect();
     },
     err => {
@@ -1335,6 +1511,10 @@ window.saveItem = async () => {
     rating:   currentRating,
     note:     document.getElementById('f-note').value.trim(),
     coverUrl: currentCoverUrl || '',
+    duration: parseInt(document.getElementById('f-duration').value) || 0,
+    tags:     [...currentTags],
+    progCur:  parseInt(document.getElementById('f-prog-cur').value) || 0,
+    progTot:  parseInt(document.getElementById('f-prog-tot').value) || 0,
   };
 
   try {
@@ -1528,7 +1708,9 @@ let items = [];
 let activeCat = 'all';
 let currentRating = 0;
 let toastTimer = null;
-let currentView = localStorage.getItem('mth_view') || 'grid'; // default: grid
+let currentView = localStorage.getItem('mth_view') || 'grid';
+let currentTags = [];
+let activeTagFilter = null; // default: grid
 
 // ── Sync indicator ──
 function setSyncState(state) {
@@ -1588,12 +1770,18 @@ function renderStats() {
   const wish  = items.filter(i => i.status === 'wishlist').length;
   const rated = items.filter(i => i.rating > 0);
   const avg   = rated.length ? (rated.reduce((s,i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
+  const totalMin = calcTotalMinutes(items.filter(i => i.status === 'done' || i.status === 'progress'));
+  const timeLabel = formatDuration(totalMin, true);
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--done)">${done}</div><div class="stat-label">Terminés</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--progress)">${prog}</div><div class="stat-label">En cours</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--wishlist)">${wish}</div><div class="stat-label">À voir</div></div>
     <div class="stat-card gold"><div class="stat-num">${avg}</div><div class="stat-label">Note moyenne</div></div>
+    ${totalMin > 0 ? `<div class="stat-card time" style="cursor:pointer;grid-column:span 2" onclick="openTimeModal()" title="Voir le détail">
+      <div class="stat-num">⏱ ${timeLabel}</div>
+      <div class="stat-label">Temps consommé · cliquer pour détail</div>
+    </div>` : ''}
   `;
 }
 
@@ -1605,6 +1793,7 @@ function getFiltered() {
     if (activeCat !== 'all' && it.cat !== activeCat) return false;
     if (st && it.status !== st) return false;
     if (q && !it.title.toLowerCase().includes(q) && !(it.author || '').toLowerCase().includes(q)) return false;
+    if (activeTagFilter && !(it.tags || []).includes(activeTagFilter)) return false;
     return true;
   });
 }
@@ -1623,7 +1812,15 @@ function renderList() {
   document.getElementById('btn-view-grid').classList.toggle('active', currentView === 'grid');
   document.getElementById('btn-view-list').classList.toggle('active', currentView === 'list');
 
-  const filtered = getFiltered().slice().reverse();
+  renderTagFilterBar();
+
+  const sort = document.getElementById('sort-select')?.value || 'date_desc';
+  let filtered = getFiltered();
+  // default order: reverse (newest first), unless sort overrides
+  if (sort === 'date_desc') filtered = filtered.slice().reverse();
+  else if (sort === 'date_asc') { /* keep original order */ }
+  else filtered = getSorted(filtered);
+
   const el = document.getElementById('media-list');
   document.getElementById('list-count').textContent = `${filtered.length} média${filtered.length !== 1 ? 's' : ''}`;
 
@@ -1647,15 +1844,25 @@ function renderList() {
       const stars = item.rating > 0 ? `<div class="book-stars">${'★'.repeat(item.rating)}</div>` : '';
       const sub   = [item.author, item.year].filter(Boolean).join(' · ');
       const coverCls = getCoverClass(cat.id);
-      return `<div class="media-card">
+
+      // Progress bar on cover
+      let progBar = '';
+      if (item.progTot > 0 && item.status === 'progress') {
+        const pct = Math.min(100, Math.round((item.progCur || 0) / item.progTot * 100));
+        progBar = `<div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(0,0,0,0.4);z-index:3">
+          <div style="height:100%;width:${pct}%;background:var(--progress);border-radius:0 0 7px 0"></div></div>`;
+      }
+
+      return `<div class="media-card" onclick="openDrawer('${item.id}')">
         <div class="book-cover ${coverCls} ${item.coverUrl ? 'has-img' : ''}">
           <div class="book-cover-bg"></div>
           ${item.coverUrl ? `<img class="book-cover-img" src="${esc(item.coverUrl)}" alt="${esc(item.title)}" loading="lazy" />` : ''}
           <div class="book-cover-emoji">${cat.icon}</div>
           <div class="book-cover-title">${esc(item.title)}</div>
-          <div class="book-status-dot ${item.status}" title="${st.label}" onclick="openStatusPopover(event,'${item.id}')" style="cursor:pointer;"></div>
-          <button class="book-edit-btn" onclick="openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
-          <button class="book-del-btn" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
+          <div class="book-status-dot ${item.status}" title="${st.label}" onclick="event.stopPropagation();openStatusPopover(event,'${item.id}')" style="cursor:pointer;"></div>
+          <button class="book-edit-btn" onclick="event.stopPropagation();openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
+          <button class="book-del-btn" onclick="event.stopPropagation();del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
+          ${progBar}
         </div>
         <div class="book-meta">
           <div class="book-meta-title">${esc(item.title)}</div>
@@ -1671,18 +1878,22 @@ function renderList() {
       const st    = STATUS[item.status] || STATUS.done;
       const stars = item.rating > 0 ? `<span class="stars">${'★'.repeat(item.rating)}</span>` : '';
       const sub   = [item.author, item.year].filter(Boolean).join(' · ');
-      return `<div class="media-card">
+      const tagsHTML = (item.tags && item.tags.length)
+        ? item.tags.map(t => `<span class="tag-chip" style="cursor:default">#${esc(t)}</span>`).join('')
+        : '';
+      return `<div class="media-card" onclick="openDrawer('${item.id}')" style="cursor:pointer">
         <div class="media-emoji">${cat.icon}</div>
         <div class="media-body">
           <div class="media-title">${esc(item.title)}</div>
           ${sub ? `<div class="media-sub">${esc(sub)}${item.note ? ' — ' + esc(item.note) : ''}</div>`
                  : item.note ? `<div class="media-sub">${esc(item.note)}</div>` : ''}
+          ${tagsHTML ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${tagsHTML}</div>` : ''}
         </div>
         <div class="media-right">
           ${stars}
-          <button class="status-cycle-btn badge ${st.cls}" onclick="openStatusPopover(event,'${item.id}')" title="Changer le statut">${st.label}</button>
-          <button class="btn-edit" onclick="openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
-          <button class="btn-del" onclick="del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
+          <button class="status-cycle-btn badge ${st.cls}" onclick="event.stopPropagation();openStatusPopover(event,'${item.id}')" title="Changer le statut">${st.label}</button>
+          <button class="btn-edit" onclick="event.stopPropagation();openEditModal('${item.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
+          <button class="btn-del" onclick="event.stopPropagation();del('${item.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
         </div>
       </div>`;
     }).join('');
@@ -1702,6 +1913,8 @@ function openModal() {
   document.getElementById('btn-save-label').textContent = 'Enregistrer';
   resetForm();
   currentCoverUrl = '';
+  currentTags = [];
+  renderTagsInput();
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-title').focus();
 }
@@ -1718,6 +1931,11 @@ window.openEditModal = function(id) {
   document.getElementById('f-year').value   = item.year   || '';
   document.getElementById('f-note').value   = item.note   || '';
   document.getElementById('f-status').value = item.status || 'done';
+  document.getElementById('f-prog-cur').value  = item.progCur  || '';
+  document.getElementById('f-prog-tot').value  = item.progTot  || '';
+  document.getElementById('f-duration').value  = item.duration || '';
+  const durStatus = document.getElementById('dur-status');
+  if (durStatus) durStatus.textContent = '';
 
   populateCatSelect();
   const catSel = document.getElementById('f-cat');
@@ -1732,6 +1950,10 @@ window.openEditModal = function(id) {
   document.getElementById('cover-search-input').value = item.title || '';
   document.getElementById('cover-results').innerHTML = '';
   setCoverPreview(item.coverUrl || null);
+
+  // Tags
+  currentTags = Array.isArray(item.tags) ? [...item.tags] : [];
+  renderTagsInput();
 
   document.getElementById('modal').classList.add('open');
   document.getElementById('f-title').focus();
@@ -1751,12 +1973,17 @@ function setRating(v) {
 }
 
 function resetForm() {
-  ['f-title','f-author','f-year','f-note'].forEach(id => document.getElementById(id).value = '');
+  ['f-title','f-author','f-year','f-note','f-prog-cur','f-prog-tot','f-duration'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.getElementById('f-status').value = 'done';
   document.getElementById('cover-search-input').value = '';
   document.getElementById('cover-results').innerHTML = '';
   setRating(0);
   setCoverPreview(null);
+  currentTags = [];
+  renderTagsInput();
 }
 
 // ── Export ──
@@ -1809,11 +2036,103 @@ function clearCoverResults() {
   document.querySelectorAll('.cover-result-item').forEach(el => el.classList.remove('selected'));
 }
 
-// ── Open Library search ──
+// ── TMDB config ──
+const TMDB_KEY = '55cf1c95f9da0541fb8cb3439e020a1a';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+const TMDB_IMG  = 'https://image.tmdb.org/t/p/w342';
+
+// ── Category → search mode ──
+function getCatSearchMode(catId) {
+  if (catId === 'film')   return 'tmdb_movie';
+  if (catId === 'serie' || catId === 'anime') return 'tmdb_tv';
+  return 'openlibrary';
+}
+
+// Hint text for duration field depending on category
+function updateDurHint() {
+  const cat = document.getElementById('f-cat')?.value || '';
+  const hint = document.getElementById('dur-hint');
+  if (!hint) return;
+  if (cat === 'film')    hint.textContent = '(durée totale en min)';
+  else if (cat === 'serie' || cat === 'anime') hint.textContent = '(min par épisode)';
+  else if (cat === 'livre' || cat === 'manga' || cat === 'bd') hint.textContent = '(min de lecture)';
+  else if (cat === 'jeu')     hint.textContent = '(heures de jeu)';
+  else if (cat === 'podcast') hint.textContent = '(min par épisode)';
+  else hint.textContent = '(minutes)';
+}
+
+// Listen for cat change to update hint
+document.addEventListener('DOMContentLoaded', () => {
+  const catSel = document.getElementById('f-cat');
+  if (catSel) catSel.addEventListener('change', updateDurHint);
+});
+
+// ── Fetch duration automatically via TMDB ──
+window.fetchDuration = async function() {
+  const title = document.getElementById('f-title').value.trim()
+             || document.getElementById('cover-search-input').value.trim();
+  if (!title) { showToast('Entre d\'abord le titre', true); return; }
+  const cat = document.getElementById('f-cat')?.value || '';
+  const mode = getCatSearchMode(cat);
+  if (mode === 'openlibrary') {
+    showToast('Durée auto uniquement pour Films, Séries et Anime', true);
+    return;
+  }
+
+  const btn = document.getElementById('btn-fetch-dur');
+  const status = document.getElementById('dur-status');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i>';
+  status.textContent = 'Recherche TMDB…';
+
+  try {
+    const endpoint = mode === 'tmdb_movie' ? 'search/movie' : 'search/tv';
+    const res  = await fetch(`${TMDB_BASE}/${endpoint}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}&language=fr-FR&page=1`);
+    const data = await res.json();
+    const result = (data.results || [])[0];
+    if (!result) { status.textContent = 'Aucun résultat TMDB.'; return; }
+
+    if (mode === 'tmdb_movie') {
+      const detail = await fetch(`${TMDB_BASE}/movie/${result.id}?api_key=${TMDB_KEY}&language=fr-FR`);
+      const movie  = await detail.json();
+      if (movie.runtime) {
+        document.getElementById('f-duration').value = movie.runtime;
+        status.textContent = `✅ ${movie.title} — ${movie.runtime} min`;
+      } else {
+        status.textContent = 'Durée non disponible sur TMDB.';
+      }
+    } else {
+      const detail = await fetch(`${TMDB_BASE}/tv/${result.id}?api_key=${TMDB_KEY}&language=fr-FR`);
+      const tv = await detail.json();
+      const epDur = tv.episode_run_time?.[0] || 0;
+      const epTot = tv.number_of_episodes || 0;
+      if (epDur) {
+        document.getElementById('f-duration').value = epDur;
+        if (epTot && !document.getElementById('f-prog-tot').value) {
+          document.getElementById('f-prog-tot').value = epTot;
+        }
+        status.textContent = `✅ ${tv.name} — ${epDur} min/épisode · ${epTot} épisodes`;
+      } else {
+        status.textContent = 'Durée par épisode non disponible.';
+      }
+    }
+  } catch(e) {
+    status.textContent = 'Erreur réseau.';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-wand"></i> Auto';
+  }
+};
+
+// ── Cover search: TMDB or OpenLibrary based on category ──
 async function searchCover() {
   const query = document.getElementById('cover-search-input').value.trim()
              || document.getElementById('f-title').value.trim();
   if (!query) return;
+
+  const cat  = document.getElementById('f-cat')?.value || '';
+  const mode = getCatSearchMode(cat);
 
   const btn = document.getElementById('btn-search-cover');
   const resultsEl = document.getElementById('cover-results');
@@ -1822,29 +2141,11 @@ async function searchCover() {
   resultsEl.innerHTML = '<span class="cover-status-msg">Recherche en cours…</span>';
 
   try {
-    const q = encodeURIComponent(query);
-    const res = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=15&fields=key,cover_i,title,author_name`);
-    const data = await res.json();
-
-    const covers = (data.docs || [])
-      .filter(d => d.cover_i)
-      .slice(0, 8)
-      .map(d => ({
-        url: `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`,
-        title: d.title || '',
-      }));
-
-    if (!covers.length) {
-      resultsEl.innerHTML = '<span class="cover-status-msg">Aucune couverture trouvée. Essaie un autre titre ou uploade une image.</span>';
-      return;
+    if (mode === 'tmdb_movie' || mode === 'tmdb_tv') {
+      await searchCoverTMDB(query, mode, resultsEl);
+    } else {
+      await searchCoverOpenLibrary(query, resultsEl);
     }
-
-    resultsEl.innerHTML = covers.map((c, i) =>
-      `<div class="cover-result-item" title="${esc(c.title)}" onclick="selectCoverResult(this, '${esc(c.url)}')">
-        <img src="${esc(c.url)}" loading="lazy" alt="${esc(c.title)}" />
-      </div>`
-    ).join('');
-
   } catch(e) {
     resultsEl.innerHTML = '<span class="cover-status-msg">Erreur réseau. Vérifie ta connexion.</span>';
     console.error(e);
@@ -1852,6 +2153,86 @@ async function searchCover() {
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-search"></i> Chercher';
   }
+}
+
+async function searchCoverTMDB(query, mode, resultsEl) {
+  const endpoint = mode === 'tmdb_movie' ? 'search/movie' : 'search/tv';
+  const res  = await fetch(`${TMDB_BASE}/${endpoint}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=fr-FR&page=1`);
+  const data = await res.json();
+
+  const covers = (data.results || [])
+    .filter(d => d.poster_path)
+    .slice(0, 8)
+    .map(d => ({
+      url:   TMDB_IMG + d.poster_path,
+      title: d.title || d.name || '',
+      id:    d.id,
+    }));
+
+  if (!covers.length) {
+    resultsEl.innerHTML = '<span class="cover-status-msg">Aucune affiche trouvée. Essaie un autre titre ou uploade une image.</span>';
+    return;
+  }
+
+  // Also auto-fetch duration for first result
+  autoFetchDurationTMDB(covers[0].id, mode);
+
+  resultsEl.innerHTML = covers.map(c =>
+    `<div class="cover-result-item" title="${esc(c.title)}" onclick="selectCoverResult(this,'${esc(c.url)}')">
+      <img src="${esc(c.url)}" loading="lazy" alt="${esc(c.title)}" />
+    </div>`
+  ).join('');
+}
+
+async function autoFetchDurationTMDB(id, mode) {
+  try {
+    const url = mode === 'tmdb_movie'
+      ? `${TMDB_BASE}/movie/${id}?api_key=${TMDB_KEY}&language=fr-FR`
+      : `${TMDB_BASE}/tv/${id}?api_key=${TMDB_KEY}&language=fr-FR`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    const durEl    = document.getElementById('f-duration');
+    const statusEl = document.getElementById('dur-status');
+    const progTot  = document.getElementById('f-prog-tot');
+    if (!durEl.value) {
+      if (mode === 'tmdb_movie' && data.runtime) {
+        durEl.value = data.runtime;
+        if (statusEl) statusEl.textContent = `⚡ Durée auto: ${data.runtime} min`;
+      } else if (mode !== 'tmdb_movie') {
+        const epDur = data.episode_run_time?.[0];
+        const epTot = data.number_of_episodes;
+        if (epDur) {
+          durEl.value = epDur;
+          if (epTot && !progTot.value) progTot.value = epTot;
+          if (statusEl) statusEl.textContent = `⚡ Durée auto: ${epDur} min/épisode · ${epTot} épisodes`;
+        }
+      }
+    }
+  } catch(e) { /* silent */ }
+}
+
+async function searchCoverOpenLibrary(query, resultsEl) {
+  const res  = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=15&fields=key,cover_i,title,author_name`);
+  const data = await res.json();
+
+  const covers = (data.docs || [])
+    .filter(d => d.cover_i)
+    .slice(0, 8)
+    .map(d => ({
+      url:   `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`,
+      title: d.title || '',
+    }));
+
+  if (!covers.length) {
+    resultsEl.innerHTML = '<span class="cover-status-msg">Aucune couverture trouvée. Essaie un autre titre ou uploade une image.</span>';
+    return;
+  }
+
+  resultsEl.innerHTML = covers.map(c =>
+    `<div class="cover-result-item" title="${esc(c.title)}" onclick="selectCoverResult(this,'${esc(c.url)}')">
+      <img src="${esc(c.url)}" loading="lazy" alt="${esc(c.title)}" />
+    </div>`
+  ).join('');
 }
 
 function selectCoverResult(el, url) {
@@ -1871,9 +2252,134 @@ function handleCoverUpload(e) {
     clearCoverResults();
   };
   reader.readAsDataURL(file);
-  // reset input so same file can be re-uploaded
   e.target.value = '';
 }
+
+// ══════════════════════════════════
+// ── Durée & Temps total ──
+// ══════════════════════════════════
+
+// Calcule les minutes consommées pour un item
+function calcItemMinutes(item) {
+  const dur = parseInt(item.duration) || 0;
+  if (!dur) return 0;
+  const cat = item.cat || '';
+
+  if (item.status === 'done') {
+    // Film, livre, jeu, podcast unique = durée totale
+    if (['film','livre','bd','manga'].includes(cat)) {
+      return dur;
+    }
+    // Série/anime = durée × épisodes totaux
+    if (['serie','anime','podcast'].includes(cat)) {
+      const tot = parseInt(item.progTot) || 1;
+      return dur * tot;
+    }
+    // Jeu = durée en heures → minutes
+    if (cat === 'jeu') return dur * 60;
+    return dur;
+  }
+
+  if (item.status === 'progress') {
+    const cur = parseInt(item.progCur) || 0;
+    if (['film','livre','bd','manga'].includes(cat)) {
+      // progression = % estimé
+      const tot = parseInt(item.progTot) || 1;
+      return Math.round(dur * (cur / tot));
+    }
+    if (['serie','anime','podcast'].includes(cat)) {
+      return dur * cur;
+    }
+    if (cat === 'jeu') return dur * 60 * (cur / Math.max(parseInt(item.progTot) || 1, 1));
+    return dur * cur;
+  }
+
+  return 0;
+}
+
+function calcTotalMinutes(arr) {
+  return arr.reduce((sum, item) => sum + calcItemMinutes(item), 0);
+}
+
+function formatDuration(totalMin, short = false) {
+  if (!totalMin) return '0 min';
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (short) {
+    if (h >= 24) {
+      const d = Math.floor(h / 24);
+      const rh = h % 24;
+      return rh ? `${d}j ${rh}h` : `${d} jours`;
+    }
+    return h ? `${h}h${m ? String(m).padStart(2,'0') : ''}` : `${m} min`;
+  }
+  if (h >= 24) {
+    const d = Math.floor(h / 24);
+    const rh = h % 24;
+    return `${d} jour${d>1?'s':''} ${rh}h${m ? ' '+m+'min' : ''}`.trim();
+  }
+  return h ? `${h}h ${m}min` : `${m} min`;
+}
+
+function funFact(totalMin) {
+  if (!totalMin) return null;
+  const h = totalMin / 60;
+  const d = h / 24;
+  if (d >= 365) return { val: (d/365).toFixed(1) + ' an' + (d/365>=2?'s':''), label: 'de contenu consommé' };
+  if (d >= 30)  return { val: Math.round(d/30) + ' mois', label: 'de contenu consommé' };
+  if (d >= 7)   return { val: (d/7).toFixed(1) + ' semaine' + (d/7>=2?'s':''), label: 'de contenu consommé' };
+  if (d >= 1)   return { val: d.toFixed(1) + ' jour' + (d>=2?'s':''), label: 'de contenu consommé' };
+  return { val: Math.round(h) + 'h', label: 'de contenu consommé' };
+}
+
+// ── Time modal ──
+function openTimeModal() {
+  const consumed = items.filter(i => i.status === 'done' || i.status === 'progress');
+  const pending  = items.filter(i => i.status === 'wishlist');
+  const totalDone = calcTotalMinutes(consumed);
+  const totalPend = calcTotalMinutes(pending);
+  const allCats   = getAllCats().filter(c => c.id !== 'all');
+  const fact = funFact(totalDone);
+
+  // Per-category breakdown
+  const catRows = allCats.map(c => {
+    const catMin = calcTotalMinutes(consumed.filter(i => i.cat === c.id));
+    if (!catMin) return '';
+    return `<div class="time-modal-row">
+      <span class="time-modal-cat">${c.icon} ${esc(c.label)}</span>
+      <span class="time-modal-val">${formatDuration(catMin)}</span>
+    </div>`;
+  }).join('');
+
+  const funBox = fact ? `
+    <div class="time-fun-box">
+      <div class="time-fun-num">${fact.val}</div>
+      <div class="time-fun-label">${fact.label} 🎉</div>
+    </div>` : '';
+
+  document.getElementById('time-modal-content').innerHTML = `
+    ${funBox}
+    <div style="margin-bottom:1rem">
+      <div class="time-modal-row" style="border-bottom:1px solid var(--border2)">
+        <span style="font-size:14px;font-weight:600;color:var(--text)">Total consommé</span>
+        <span class="time-modal-val" style="font-size:16px">${formatDuration(totalDone)}</span>
+      </div>
+      ${totalPend ? `<div class="time-modal-row">
+        <span style="font-size:14px;color:var(--text2)">⏳ Encore à voir/lire</span>
+        <span class="time-modal-val">${formatDuration(totalPend)}</span>
+      </div>` : ''}
+    </div>
+    ${catRows ? `<div style="margin-bottom:0.5rem;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px">Par catégorie</div>${catRows}` : ''}
+    <div style="font-size:11px;color:var(--text3);margin-top:1rem;text-align:center">
+      Les médias sans durée renseignée ne sont pas comptabilisés.<br>
+      Jeux vidéo : durée saisie en heures. Tout le reste : en minutes.
+    </div>
+  `;
+  document.getElementById('time-modal').classList.add('open');
+}
+
+function closeTimeModal() { document.getElementById('time-modal').classList.remove('open'); }
+function closeTimeModalBg(e) { if (e.target === document.getElementById('time-modal')) closeTimeModal(); }
 
 // auto-fill cover search input when title changes
 document.getElementById('f-title').addEventListener('input', function() {
@@ -1884,9 +2390,177 @@ document.getElementById('f-title').addEventListener('input', function() {
   }
 });
 
+// ══════════════════════════════════
+// ── Tags ──
+// ══════════════════════════════════
+function renderTagsInput() {
+  const wrap = document.getElementById('tags-input-wrap');
+  const inp  = document.getElementById('tags-real-input');
+  // Remove old chips (keep input)
+  wrap.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  currentTags.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${esc(tag)} <button type="button" onclick="removeTag(${i})">✕</button>`;
+    wrap.insertBefore(chip, inp);
+  });
+}
+
+function removeTag(i) {
+  currentTags.splice(i, 1);
+  renderTagsInput();
+}
+
+function addTagFromInput(val) {
+  val = val.trim().replace(/^#/, '').toLowerCase();
+  if (val && !currentTags.includes(val)) { currentTags.push(val); }
+  renderTagsInput();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('tags-real-input');
+  if (!inp) return;
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTagFromInput(inp.value);
+      inp.value = '';
+    } else if (e.key === 'Backspace' && !inp.value && currentTags.length) {
+      currentTags.pop();
+      renderTagsInput();
+    }
+  });
+  inp.addEventListener('blur', () => {
+    if (inp.value.trim()) { addTagFromInput(inp.value); inp.value = ''; }
+  });
+});
+
+// ── Tag filter bar ──
+function renderTagFilterBar() {
+  const allTags = [...new Set(items.flatMap(i => i.tags || []))].sort();
+  const bar = document.getElementById('tag-filter-bar');
+  if (!allTags.length) { bar.innerHTML = ''; return; }
+  bar.innerHTML = allTags.map(t =>
+    `<button class="tag-filter-btn ${activeTagFilter === t ? 'active' : ''}" onclick="toggleTagFilter('${esc(t)}')">#${esc(t)}</button>`
+  ).join('');
+}
+
+function toggleTagFilter(tag) {
+  activeTagFilter = activeTagFilter === tag ? null : tag;
+  renderTagFilterBar();
+  renderList();
+}
+
+// ══════════════════════════════════
+// ── Sort ──
+// ══════════════════════════════════
+function getSorted(arr) {
+  const sort = document.getElementById('sort-select')?.value || 'date_desc';
+  return arr.slice().sort((a, b) => {
+    if (sort === 'date_asc')    return 0; // items already in creation order, slice reversal handles desc
+    if (sort === 'rating_desc') return (b.rating || 0) - (a.rating || 0);
+    if (sort === 'title_asc')   return (a.title || '').localeCompare(b.title || '');
+    if (sort === 'title_desc')  return (b.title || '').localeCompare(a.title || '');
+    return 0; // date_desc = default order (Firestore already chronological, we reverse below)
+  });
+}
+
+// ══════════════════════════════════
+// ── Drawer ──
+// ══════════════════════════════════
+let currentDrawerId = null;
+
+window.openDrawer = function(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  currentDrawerId = id;
+  const allCats = getAllCats();
+  const cat  = allCats.find(c => c.id === item.cat) || { icon: '✨', id: 'autre' };
+  const st   = STATUS[item.status] || STATUS.done;
+  const stars = item.rating > 0 ? '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating) : '';
+  const sub   = [item.author, item.year].filter(Boolean).join(' · ');
+
+  // Cover
+  const coverWrap = document.getElementById('drawer-cover-wrap');
+  // keep close btn
+  const closeBtn = coverWrap.querySelector('.drawer-close');
+  if (item.coverUrl) {
+    coverWrap.innerHTML = `<img class="drawer-cover" src="${esc(item.coverUrl)}" alt="${esc(item.title)}" loading="lazy" />`;
+  } else {
+    coverWrap.innerHTML = `<div class="drawer-cover-placeholder">${cat.icon}</div>`;
+  }
+  coverWrap.appendChild(closeBtn || (() => {
+    const b = document.createElement('button');
+    b.className = 'drawer-close'; b.onclick = closeDrawer;
+    b.innerHTML = '<i class="ti ti-x"></i>'; return b;
+  })());
+
+  // Duration
+  let durationHTML = '';
+  if (item.duration) {
+    const cat = item.cat || '';
+    const unit = cat === 'jeu' ? 'h de jeu estimées' : 'min' + (['serie','anime','podcast'].includes(cat) ? '/épisode' : '');
+    const consumed = calcItemMinutes(item);
+    durationHTML = `<div class="drawer-section-label" style="margin-top:10px">Durée</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:${consumed?'4':'14'}px">${item.duration} ${unit}</div>
+      ${consumed ? `<div style="font-size:13px;color:#a78bfa;margin-bottom:14px">⏱ ${formatDuration(consumed)} consommés</div>` : ''}`;
+  }
+  if (item.progTot > 0) {
+    const pct = Math.min(100, Math.round((item.progCur || 0) / item.progTot * 100));
+    progressHTML = `
+      <div class="drawer-section-label">Progression</div>
+      <div class="drawer-progress-bar-wrap"><div class="drawer-progress-bar" style="width:${pct}%"></div></div>
+      <div class="drawer-progress-label">${item.progCur || 0} / ${item.progTot} — ${pct}%</div>`;
+  }
+
+  // Tags
+  const tagsHTML = (item.tags && item.tags.length)
+    ? `<div class="drawer-section-label" style="margin-top:10px">Tags</div>
+       <div class="drawer-tags">${item.tags.map(t => `<span class="drawer-tag">#${esc(t)}</span>`).join('')}</div>`
+    : '';
+
+  // Note
+  const noteHTML = item.note
+    ? `<div class="drawer-section-label" style="margin-top:10px">Note</div>
+       <div class="drawer-note">${esc(item.note)}</div>`
+    : '';
+
+  document.getElementById('drawer-body').innerHTML = `
+    <div class="drawer-title">${esc(item.title)}</div>
+    ${sub ? `<div class="drawer-meta">${esc(sub)}</div>` : ''}
+    <div class="drawer-badges">
+      <span class="badge ${st.cls}">${st.label}</span>
+      <span class="badge" style="background:var(--bg3);color:var(--text3)">${cat.icon} ${esc(cat.label)}</span>
+    </div>
+    ${stars ? `<div class="drawer-stars">${stars}</div>` : ''}
+    ${durationHTML}
+    ${progressHTML}
+    ${noteHTML}
+    ${tagsHTML}
+  `;
+
+  document.getElementById('drawer-actions').innerHTML = `
+    <button class="btn-secondary" onclick="openEditModal('${item.id}');closeDrawer()"><i class="ti ti-pencil"></i> Modifier</button>
+    <button class="btn-drawer-del" onclick="del('${item.id}');closeDrawer()"><i class="ti ti-trash"></i> Supprimer</button>
+  `;
+
+  document.getElementById('drawer-bg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+function closeDrawer() {
+  document.getElementById('drawer-bg').classList.remove('open');
+  document.body.style.overflow = '';
+  currentDrawerId = null;
+}
+
+function closeDrawerBg(e) {
+  if (e.target === document.getElementById('drawer-bg')) closeDrawer();
+}
+
 // ── Keyboard ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeCatModal(); closeEmojiPicker(); }
+  if (e.key === 'Escape') { closeModal(); closeCatModal(); closeEmojiPicker(); closeDrawer(); closeTimeModal(); }
   if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) {
     if (document.activeElement.tagName !== 'TEXTAREA') saveItem();
   }
