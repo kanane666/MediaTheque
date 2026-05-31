@@ -38,7 +38,6 @@
       --abandoned-bg: rgba(248,113,113,0.1);
       --radius: 10px;
       --radius-lg: 14px;
-      /* why its not working */
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -131,11 +130,16 @@
       flex-shrink: 0;
       background: var(--bg2);
       border-right: 1px solid var(--border);
-      padding: 1.5rem 0 4rem;
+      padding: 1.5rem 0 5rem;
       position: fixed;
       top: 0; left: 0; bottom: 0;
       overflow-y: auto;
       z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-content {
+      flex: 1;
     }
     .sidebar-logo {
       padding: 0 1.25rem 1.25rem;
@@ -706,10 +710,10 @@
 
     /* ── Sidebar footer ── */
     .sidebar-footer {
-      position: absolute; bottom: 0; left: 0; right: 0;
       padding: 0.75rem;
       border-top: 1px solid var(--border);
       background: var(--bg2);
+      flex-shrink: 0;
     }
     .btn-settings {
       width: 100%; display: flex; align-items: center; gap: 8px;
@@ -1018,7 +1022,18 @@
     }
     .cat-btn.hidden-preview:hover { opacity: 0.75; }
 
-    /* ── Navigation tabs ── */
+    /* ── Custom scrollbars ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      transition: background 0.2s;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+    ::-webkit-scrollbar-corner { background: transparent; }
+    /* Firefox */
+    * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
     .nav-tabs {
       display: flex; gap: 2px; padding: 0 0.75rem; margin-bottom: 1rem;
     }
@@ -1320,8 +1335,10 @@
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
     </div>
+    <!-- Spacer pour ne pas cacher les catégories derrière le footer -->
+    <div style="flex:1; min-height: 60px;"></div>
     <!-- Footer avec paramètres -->
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" style="position:sticky;bottom:0;margin-top:auto">
       <button class="btn-settings" onclick="openAbout()">
         <i class="ti ti-settings"></i> Paramètres &amp; À propos
       </button>
