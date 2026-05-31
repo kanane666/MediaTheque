@@ -1875,7 +1875,7 @@ function renderSidebar() {
   }
 }
 
-function toggleShowHidden() {
+window.toggleShowHidden = function toggleShowHidden() {
   showHiddenMode = !showHiddenMode;
   // If we were on a hidden cat and we're turning off preview, reset to 'all'
   if (!showHiddenMode) {
@@ -2274,7 +2274,7 @@ window.fetchDuration = async function() {
 };
 
 // ── Cover search: TMDB or OpenLibrary based on category ──
-async function searchCover() {
+window.searchCover = async function searchCover() {
   const query = document.getElementById('cover-search-input').value.trim()
              || document.getElementById('f-title').value.trim();
   if (!query) return;
@@ -2766,7 +2766,7 @@ function renderCatModal() {
   newCatIcon = '✨';
 }
 
-function renameCat(idx, newName) {
+window.renameCat = function renameCat(idx, newName) {
   if (!newName.trim()) return;
   userCats[idx].label = newName.trim();
   saveCats();
