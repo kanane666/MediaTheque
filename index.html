@@ -1326,6 +1326,7 @@
       <div class="sidebar-label">Catégories</div>
       <div id="sidebar-cats"></div>
       <button class="cat-manage-btn" onclick="openCatModal()"><i class="ti ti-settings-2"></i> Gérer les catégories</button>
+      <button class="cat-manage-btn" onclick="openAbout()"><i class="ti ti-info-circle"></i> Paramètres &amp; À propos</button>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Données</div>
@@ -1334,14 +1335,6 @@
         <i class="ti ti-upload cat-icon"></i> Importer JSON
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
-    </div>
-    <!-- Spacer pour ne pas cacher les catégories derrière le footer -->
-    <div style="flex:1; min-height: 60px;"></div>
-    <!-- Footer avec paramètres -->
-    <div class="sidebar-footer" style="position:sticky;bottom:0;margin-top:auto">
-      <button class="btn-settings" onclick="openAbout()">
-        <i class="ti ti-settings"></i> Paramètres &amp; À propos
-      </button>
     </div>
   </aside>
 
