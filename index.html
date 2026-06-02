@@ -293,6 +293,7 @@
     .stat-card {
       background: var(--bg2); border: 1px solid var(--border);
       border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+      transition: border-color 0.15s, transform 0.15s, background 0.15s;
     }
     .stat-num { font-size: 24px; font-weight: 600; color: var(--text); }
     .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
@@ -300,6 +301,10 @@
     .stat-card.time .stat-num { color: #a78bfa; font-size: 20px; }
     .stat-card.time-cat { cursor: pointer; transition: border-color 0.12s; }
     .stat-card.time-cat:hover { border-color: var(--border2); }
+    .stat-card.filterable { cursor: pointer; }
+    .stat-card.filterable:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .stat-card.filterable.active { border-color: var(--accent); background: var(--accent-bg); }
+    .stat-card.filterable.active .stat-num { color: var(--accent2); }
 
     /* time modal */
     .time-modal-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -317,19 +322,21 @@
     /* ── Filters ── */
     .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .filters input[type="text"] {
-      flex: 1; min-width: 180px; background: var(--bg2);
+      flex: 1; min-width: 0; background: var(--bg2);
       border: 1px solid var(--border); color: var(--text);
       padding: 8px 12px; border-radius: var(--radius);
       font-family: 'DM Sans', sans-serif; font-size: 14px;
       outline: none; transition: border-color 0.12s;
+      width: 100%; box-sizing: border-box;
     }
     .filters input:focus { border-color: var(--accent); }
     .filters input::placeholder { color: var(--text3); }
     .filters select {
       background: var(--bg2); border: 1px solid var(--border); color: var(--text2);
-      padding: 8px 12px; border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif; font-size: 14px;
-      outline: none; cursor: pointer; min-width: 140px;
+      padding: 8px 10px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      outline: none; cursor: pointer; min-width: 0; flex: 1;
+      box-sizing: border-box;
     }
     .filters select:focus { border-color: var(--accent); }
 
@@ -2362,17 +2369,18 @@ document.getElementById('login-screen').style.display = 'none';
 // ══ UI logic (non-Firebase) ══
 
 const DEFAULT_CATS = [
-  { id: 'serie',    label: 'Séries',     icon: '📺', builtIn: true },
-  { id: 'film',     label: 'Films',      icon: '🎬', builtIn: true },
-  { id: 'theatre',  label: 'Théâtre',    icon: '🎭', builtIn: true },
-  { id: 'manga',    label: 'Manga',      icon: '📖', builtIn: true },
-  { id: 'anime',    label: 'Anime',      icon: '⛩️', builtIn: true },
-  { id: 'livre',    label: 'Livres',     icon: '📚', builtIn: true },
-  { id: 'bd',       label: 'BD',         icon: '🎨', builtIn: true },
-  { id: 'jeu',      label: 'Jeux vidéo', icon: '🎮', builtIn: true },
-  { id: 'podcast',  label: 'Podcasts',   icon: '🎙️', builtIn: true },
-  { id: 'docu',     label: 'Docs',       icon: '🔭', builtIn: true },
-  { id: 'autre',    label: 'Autre',      icon: '✨', builtIn: true },
+  { id: 'serie',      label: 'Séries',       icon: '📺', builtIn: true },
+  { id: 'film',       label: 'Films',        icon: '🎬', builtIn: true },
+  { id: 'theatre',    label: 'Théâtre',      icon: '🎭', builtIn: true },
+  { id: 'manga',      label: 'Manga',        icon: '📖', builtIn: true },
+  { id: 'anime',      label: 'Anime',        icon: '⛩️', builtIn: true },
+  { id: 'animation',  label: 'Animations',   icon: '🎠', builtIn: true },
+  { id: 'livre',      label: 'Livres',       icon: '📚', builtIn: true },
+  { id: 'bd',         label: 'BD',           icon: '🎨', builtIn: true },
+  { id: 'jeu',        label: 'Jeux vidéo',   icon: '🎮', builtIn: true },
+  { id: 'podcast',    label: 'Podcasts',     icon: '🎙️', builtIn: true },
+  { id: 'docu',       label: 'Docs',         icon: '🔭', builtIn: true },
+  { id: 'autre',      label: 'Autre',        icon: '✨', builtIn: true },
 ];
 
 // Load custom categories from localStorage (merges with defaults)
@@ -2506,9 +2514,8 @@ function setcat(id) {
   renderList();
 }
 
-// ── Stats ──
 function renderStats() {
-  const hiddenCatIds = new Set(userCats.filter(c => c.hidden).map(c => c.id));
+  const hiddenCatIds = getHiddenCatIds();
   const visible = items.filter(i => !hiddenCatIds.has(i.cat));
   const total = visible.length;
   const done  = visible.filter(i => i.status === 'done').length;
@@ -2519,17 +2526,47 @@ function renderStats() {
   const totalMin = calcTotalMinutes(visible.filter(i => i.status === 'done' || i.status === 'progress'));
   const timeLabel = formatDuration(totalMin, true);
   const hiddenCount = items.length - visible.length;
+
+  // Current active filter for highlighting
+  const activeFilter = document.getElementById('status-filter')?.value || '';
+
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total${hiddenCount ? ` <span style="font-size:10px;color:var(--text3)">(+${hiddenCount} masqués)</span>` : ''}</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--done)">${done}</div><div class="stat-label">Terminés</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--progress)">${prog}</div><div class="stat-label">En cours</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--wishlist)">${wish}</div><div class="stat-label">À voir</div></div>
-    <div class="stat-card gold"><div class="stat-num">${avg}</div><div class="stat-label">Note moyenne</div></div>
+    <div class="stat-card filterable ${activeFilter===''?'active':''}" onclick="setStatFilter('')" title="Tous les médias">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">Total${hiddenCount ? ` <span style="font-size:10px;opacity:0.6">(+${hiddenCount} masqués)</span>` : ''}</div>
+    </div>
+    <div class="stat-card filterable ${activeFilter==='done'?'active':''}" onclick="setStatFilter('done')" title="Filtrer les terminés" style="cursor:pointer">
+      <div class="stat-num" style="color:var(--done)">${done}</div>
+      <div class="stat-label">Terminés</div>
+    </div>
+    <div class="stat-card filterable ${activeFilter==='progress'?'active':''}" onclick="setStatFilter('progress')" title="Filtrer en cours" style="cursor:pointer">
+      <div class="stat-num" style="color:var(--progress)">${prog}</div>
+      <div class="stat-label">En cours</div>
+    </div>
+    <div class="stat-card filterable ${activeFilter==='wishlist'?'active':''}" onclick="setStatFilter('wishlist')" title="Filtrer à voir" style="cursor:pointer">
+      <div class="stat-num" style="color:var(--wishlist)">${wish}</div>
+      <div class="stat-label">À voir</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num">${avg}</div>
+      <div class="stat-label">Note moyenne</div>
+    </div>
     ${totalMin > 0 ? `<div class="stat-card time" style="cursor:pointer;grid-column:span 2" onclick="openTimeModal()" title="Voir le détail">
       <div class="stat-num">⏱ ${timeLabel}</div>
       <div class="stat-label">Temps consommé · cliquer pour détail</div>
     </div>` : ''}
   `;
+}
+
+window.setStatFilter = function setStatFilter(status) {
+  const sel = document.getElementById('status-filter');
+  if (!sel) return;
+  // Toggle off if already active
+  sel.value = sel.value === status ? '' : status;
+  renderList();
+  renderStats();
+  // Navigate to home page if on another page
+  if (currentPage !== 'home') setPage('home');
 }
 
 // ── List / Grid ──
@@ -2555,8 +2592,8 @@ function getFiltered() {
 function getCoverClass(catId) {
   const map = {
     serie:'cover-serie', film:'cover-film', manga:'cover-manga', anime:'cover-anime',
-    livre:'cover-livre', bd:'cover-bd', jeu:'cover-jeu', podcast:'cover-podcast',
-    docu:'cover-docu', theatre:'cover-theatre', autre:'cover-autre'
+    animation:'cover-anime', livre:'cover-livre', bd:'cover-bd', jeu:'cover-jeu',
+    podcast:'cover-podcast', docu:'cover-docu', theatre:'cover-theatre', autre:'cover-autre'
   };
   return map[catId] || 'cover-default';
 }
@@ -2567,6 +2604,7 @@ function renderList() {
   document.getElementById('btn-view-list').classList.toggle('active', currentView === 'list');
 
   renderTagFilterBar();
+  renderStats(); // keep stat cards in sync with active filter
 
   const sort = document.getElementById('sort-select')?.value || 'date_desc';
   let filtered = getFiltered();
