@@ -1420,28 +1420,59 @@
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .mobile-nav { display: block; }
-      .main { margin-left: 0; padding: 1rem; padding-bottom: 80px; }
+      .main { margin-left: 0; padding: 0.75rem; padding-bottom: 80px; }
       .form-grid { grid-template-columns: 1fr; }
       .form-field.span2 { grid-column: span 1; }
       .charts-grid { grid-template-columns: 1fr; }
       .chart-card.wide { grid-column: span 1; }
-      .modal { padding: 1.25rem; }
+      .modal { padding: 1rem; }
       .cover-section { flex-direction: column; }
       .cover-preview { width: 100%; height: 160px; border-radius: var(--radius-lg); }
-      /* List view mobile fixes */
-      .media-list .media-card { padding: 0.75rem; align-items: flex-start; gap: 10px; flex-wrap: nowrap; }
-      .media-list .media-right { flex-shrink: 0; flex-direction: column; align-items: flex-end; gap: 5px; }
-      .media-list .media-right .badge { display: none; }
-      .media-list .media-right .btn-edit,
-      .media-list .media-right .btn-del { padding: 4px; }
-      .media-list .media-right .status-cycle-btn { font-size: 10px; padding: 2px 6px; }
-      .media-list .media-body .tag-chip { display: none; }
-      .media-list .media-title { font-size: 14px; }
-      .media-list .media-sub { font-size: 11px; }
-      .media-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
-      /* Topbar mobile */
-      .topbar { flex-wrap: wrap; gap: 8px; }
+
+      /* ── List view mobile ── */
+      .media-list { gap: 5px; }
+      .media-list .media-card {
+        padding: 0.65rem 0.75rem;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .media-list .media-emoji {
+        width: 36px; height: 36px; font-size: 18px; flex-shrink: 0;
+      }
+      .media-list .media-body {
+        flex: 1; min-width: 0; overflow: hidden;
+      }
+      .media-list .media-title { font-size: 13px; }
+      .media-list .media-sub   { font-size: 11px; }
+      /* hide tags row in list on mobile */
+      .media-list .media-body > div[style*="flex-wrap"] { display: none !important; }
+      .media-list .media-right {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      /* hide stars and badge on mobile list */
+      .media-list .media-right .stars { display: none; }
+      .media-list .media-right .status-cycle-btn { display: none; }
+      .media-list .media-right .btn-edit { padding: 5px; font-size: 15px; }
+      .media-list .media-right .btn-del  { padding: 5px; font-size: 15px; }
+
+      /* ── Grid mobile ── */
+      .media-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+
+      /* ── Topbar mobile ── */
+      .topbar { flex-wrap: wrap; gap: 6px; padding: 0.75rem; }
       #sync-label { display: none; }
+      .sync-dot  { display: none; }
+
+      /* ── List header mobile ── */
+      .list-header { margin-bottom: 8px; }
+      .filters { gap: 6px; }
+      .filters input { font-size: 13px; }
+      .filters select { font-size: 12px; padding: 5px 6px; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
