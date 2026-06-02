@@ -438,6 +438,7 @@
       border-radius: var(--radius-lg); padding: 0.875rem 1rem;
       display: flex; align-items: center; gap: 12px;
       transition: border-color 0.12s, background 0.12s;
+      min-width: 0; overflow: hidden;
     }
     .media-list .media-card:hover { border-color: var(--border2); background: var(--bg3); }
     .media-list .media-emoji {
@@ -1422,13 +1423,25 @@
       .main { margin-left: 0; padding: 1rem; padding-bottom: 80px; }
       .form-grid { grid-template-columns: 1fr; }
       .form-field.span2 { grid-column: span 1; }
-      .media-list .media-right .badge { display: none; }
-      .media-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-card.wide { grid-column: span 1; }
       .modal { padding: 1.25rem; }
       .cover-section { flex-direction: column; }
       .cover-preview { width: 100%; height: 160px; border-radius: var(--radius-lg); }
-      .charts-grid { grid-template-columns: 1fr; }
-      .chart-card.wide { grid-column: span 1; }
+      /* List view mobile fixes */
+      .media-list .media-card { padding: 0.75rem; align-items: flex-start; gap: 10px; flex-wrap: nowrap; }
+      .media-list .media-right { flex-shrink: 0; flex-direction: column; align-items: flex-end; gap: 5px; }
+      .media-list .media-right .badge { display: none; }
+      .media-list .media-right .btn-edit,
+      .media-list .media-right .btn-del { padding: 4px; }
+      .media-list .media-right .status-cycle-btn { font-size: 10px; padding: 2px 6px; }
+      .media-list .media-body .tag-chip { display: none; }
+      .media-list .media-title { font-size: 14px; }
+      .media-list .media-sub { font-size: 11px; }
+      .media-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+      /* Topbar mobile */
+      .topbar { flex-wrap: wrap; gap: 8px; }
+      #sync-label { display: none; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -2832,7 +2845,7 @@ function updateDurHint() {
   if (cat === 'film')    hint.textContent = '(durée totale en min)';
   else if (cat === 'serie' || cat === 'anime') hint.textContent = '(min par épisode)';
   else if (cat === 'livre' || cat === 'manga' || cat === 'bd') hint.textContent = '(min de lecture)';
-  else if (cat === 'jeu')     hint.textContent = '(heures de jeu)';
+  else if (cat === 'jeu')     hint.textContent = '(minutes de jeu estimées)';
   else if (cat === 'podcast') hint.textContent = '(min par épisode)';
   else hint.textContent = '(minutes)';
 }
@@ -3029,32 +3042,26 @@ function calcItemMinutes(item) {
   const cat = item.cat || '';
 
   if (item.status === 'done') {
-    // Film, livre, jeu, podcast unique = durée totale
-    if (['film','livre','bd','manga'].includes(cat)) {
-      return dur;
+    if (['film','livre','bd','manga','jeu','autre'].includes(cat)) {
+      return dur; // durée totale en minutes
     }
-    // Série/anime = durée × épisodes totaux
     if (['serie','anime','podcast'].includes(cat)) {
       const tot = parseInt(item.progTot) || 1;
-      return dur * tot;
+      return dur * tot; // min/épisode × nb épisodes
     }
-    // Jeu = durée en heures → minutes
-    if (cat === 'jeu') return dur * 60;
     return dur;
   }
 
   if (item.status === 'progress') {
     const cur = parseInt(item.progCur) || 0;
-    if (['film','livre','bd','manga'].includes(cat)) {
-      // progression = % estimé
-      const tot = parseInt(item.progTot) || 1;
-      return Math.round(dur * (cur / tot));
+    const tot = parseInt(item.progTot) || 1;
+    if (['film','livre','bd','manga','jeu','autre'].includes(cat)) {
+      return tot > 0 ? Math.round(dur * (cur / tot)) : Math.round(dur * 0.5);
     }
     if (['serie','anime','podcast'].includes(cat)) {
-      return dur * cur;
+      return dur * cur; // min/épisode × épisodes regardés
     }
-    if (cat === 'jeu') return dur * 60 * (cur / Math.max(parseInt(item.progTot) || 1, 1));
-    return dur * cur;
+    return dur;
   }
 
   return 0;
@@ -3135,7 +3142,7 @@ function openTimeModal() {
     ${catRows ? `<div style="margin-bottom:0.5rem;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px">Par catégorie</div>${catRows}` : ''}
     <div style="font-size:11px;color:var(--text3);margin-top:1rem;text-align:center">
       Les médias sans durée renseignée ne sont pas comptabilisés.<br>
-      Jeux vidéo : durée saisie en heures. Tout le reste : en minutes.
+      Toutes les durées sont en minutes. Pour les jeux, renseigne le temps total de jeu en minutes.
     </div>
   `;
   document.getElementById('time-modal').classList.add('open');
