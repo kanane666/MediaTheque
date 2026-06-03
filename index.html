@@ -2051,7 +2051,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut as fbSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   getFirestore,
@@ -2083,32 +2085,40 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
-window._db = db; // expose for non-module scripts
+window._db = db;
+
+// Force persistence locale — la session survive aux fermetures de Safari/Chrome
+setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence:', e));
 
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });
 
-let currentUser      = null;
-let unsubscribeSnap  = null;
+let currentUser     = null;
+let unsubscribeSnap = null;
 
-// ── Timeout de sécurité anti-loading-infini ──
-// Si onAuthStateChanged ne répond pas dans les 8 secondes
-// (Firebase config incorrecte, réseau lent, domaine non autorisé),
-// on sort du loading et on affiche l'écran de login.
+// ── Affichage immédiat si utilisateur connu ──
+// Évite le flash "Connexion en cours" à chaque ouverture de l'app
+// en affichant directement le contenu si un utilisateur est mémorisé.
+const cachedUid = localStorage.getItem('mth_last_uid');
+if (cachedUid) {
+  // On montre l'app immédiatement avec les données en cache
+  // Firebase confirmera l'auth en arrière-plan
+  document.getElementById('loading-screen').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
+}
+
+// ── Timeout de sécurité ──
 const loadingTimeout = setTimeout(() => {
   const ls = document.getElementById('loading-screen');
   const li = document.getElementById('login-screen');
   if (ls && ls.classList.contains('show')) {
     ls.classList.remove('show');
     if (li) li.style.display = 'flex';
-    // Affiche un message d'aide si on sort par timeout
     setTimeout(() => {
-      if (typeof showToast === 'function') {
-        showToast('Vérifiez votre connexion ou la config Firebase', true);
-      }
+      if (typeof showToast === 'function') showToast('Vérifiez votre connexion', true);
     }, 100);
   }
-}, 8000);
+}, 6000);
 
 // ── Auth state observer ──
 onAuthStateChanged(auth, user => {
@@ -2117,12 +2127,22 @@ onAuthStateChanged(auth, user => {
 
   if (user) {
     currentUser = user;
-    window._currentUser = user; // expose for non-module scripts
-    showApp(user);
-    subscribeToItems(user.uid);
+    window._currentUser = user;
+    localStorage.setItem('mth_last_uid', user.uid);
+    // Si l'app était déjà affichée via le cache, juste mettre à jour l'UI
+    if (document.getElementById('app').style.display === 'flex' && cachedUid === user.uid) {
+      // Déjà affiché — juste re-souscrire aux données
+      document.getElementById('login-screen').style.display = 'none';
+      updateUserUI(user);
+      subscribeToItems(user.uid);
+    } else {
+      showApp(user);
+      subscribeToItems(user.uid);
+    }
   } else {
     currentUser = null;
     window._currentUser = null;
+    localStorage.removeItem('mth_last_uid');
     if (unsubscribeSnap) { unsubscribeSnap(); unsubscribeSnap = null; }
     showLogin();
   }
@@ -2201,13 +2221,17 @@ function showLogin() {
 function showApp(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').classList.add('show');
+  updateUserUI(user);
+}
+
+function updateUserUI(user) {
   document.getElementById('user-name').textContent = user.displayName || user.email;
   const avatarImg = document.getElementById('user-avatar');
   const avatarPlaceholder = document.getElementById('user-avatar-placeholder');
   if (user.photoURL) {
     avatarImg.src = user.photoURL;
     avatarImg.style.display = 'block';
-    avatarPlaceholder.style.display = 'none';
+    if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
   }
 }
 
