@@ -1,0 +1,26 @@
+{
+  "name": "Ma Médiathèque",
+  "short_name": "Médiathèque",
+  "description": "Ta collection de films, séries, mangas, livres et bien plus — synchronisée partout.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0f12",
+  "theme_color": "#0e0f12",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle", "utilities"],
+  "lang": "fr"
+}
