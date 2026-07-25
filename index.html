@@ -1434,6 +1434,13 @@
       .main { margin-left: 0; padding: 0.75rem; padding-bottom: 90px; box-sizing: border-box; width: 100%; overflow-x: hidden; }
       body { overflow-x: hidden; }
 
+      /* ── Anti-zoom iOS ──
+         En dessous de 16px, Safari iOS zoome automatiquement toute la page
+         quand on touche un champ. C'était le cas de tous les champs du
+         formulaire (14px, 13px…) : ça donnait l'impression que "tout casse"
+         alors que c'était juste un zoom involontaire à chaque tap. */
+      input, select, textarea { font-size: 16px !important; }
+
       /* ── Topbar ── */
       .topbar { margin-bottom: 1rem; gap: 8px; flex-wrap: nowrap; align-items: center; }
       .page-title { font-size: 18px; }
@@ -2056,7 +2063,9 @@ import {
   browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
-  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentSingleTabManager,
   collection,
   doc,
   addDoc,
@@ -2084,7 +2093,9 @@ const firebaseConfig = {
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db   = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+});
 window._db = db;
 
 // Force persistence locale — la session survive aux fermetures de Safari/Chrome
