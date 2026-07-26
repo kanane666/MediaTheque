@@ -394,6 +394,11 @@
     }
     .form-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .form-field.span2 { grid-column: span 2; }
+    .form-section-label {
+      grid-column: span 2; font-size: 11px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 1px;
+      padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--border);
+    }
     .form-field label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
     .form-field input, .form-field select, .form-field textarea {
       background: var(--bg3); border: 1px solid var(--border);
@@ -1365,13 +1370,16 @@
     .notif-panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
     .notif-panel-clear { background: transparent; border: none; color: var(--text3); font-size: 12px; cursor: pointer; }
     .notif-panel-clear:hover { color: var(--text2); }
+    .notif-panel-close { background: transparent; border: none; color: var(--text3); font-size: 16px; cursor: pointer; display: flex; align-items: center; padding: 2px; }
+    .notif-panel-close:hover { color: var(--text); }
+    .notif-list { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start; }
     .notif-item:last-child { border-bottom: none; }
     .notif-item-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
     .notif-item-body { flex: 1; min-width: 0; }
     .notif-item-text { font-size: 13px; color: var(--text2); line-height: 1.4; }
     .notif-item-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-    .notif-action-btn { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); cursor: pointer; transition: all 0.1s; font-family: 'DM Sans', sans-serif; }
+    .notif-action-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); cursor: pointer; transition: all 0.1s; font-family: 'DM Sans', sans-serif; }
     .notif-action-btn:hover { background: var(--accent-bg); color: var(--accent2); border-color: var(--accent); }
     .notif-empty { padding: 2rem; text-align: center; color: var(--text3); font-size: 13px; }
 
@@ -1447,7 +1455,9 @@
       .page-title { font-size: 18px; }
       .sync-dot, .offline-badge { display: none; }
       .sync-queue-badge { font-size: 11px; padding: 3px 8px; }
-      .notif-panel { position: fixed; top: auto; bottom: 90px; right: 8px; left: 8px; width: auto; }
+      .notif-panel { position: fixed; top: auto; bottom: calc(90px + env(safe-area-inset-bottom)); right: 8px; left: 8px; width: auto; max-height: 70vh; display: none; }
+      .notif-panel.open { display: flex; flex-direction: column; }
+      .notif-list { max-height: 50vh; }
       .topbar > div:last-child { gap: 6px; flex-shrink: 0; }
 
       /* ── Stats cards ── */
@@ -1622,9 +1632,12 @@
           <div class="notif-panel" id="notif-panel">
             <div class="notif-panel-header">
               <span class="notif-panel-title">Notifications</span>
-              <button class="notif-panel-clear" onclick="clearAllNotifs()">Tout effacer</button>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="notif-panel-clear" onclick="clearAllNotifs()">Tout effacer</button>
+                <button class="notif-panel-close" onclick="toggleNotifPanel()"><i class="ti ti-x"></i></button>
+              </div>
             </div>
-            <div id="notif-list"><div class="notif-empty">Aucune notification 🎉</div></div>
+            <div id="notif-list" class="notif-list"><div class="notif-empty">Aucune notification 🎉</div></div>
           </div>
         </div>
         <div class="sync-dot" id="sync-indicator">
@@ -1794,6 +1807,11 @@
       <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="form-grid">
+      <!-- ── Essentiel ── -->
+      <div class="form-field span2">
+        <label>Titre *</label>
+        <input type="text" id="f-title" placeholder="Ex: One Piece" />
+      </div>
       <!-- ── Couverture ── -->
       <div class="form-field cover-section">
         <div class="cover-preview" id="cover-preview">
@@ -1811,10 +1829,6 @@
           </label>
         </div>
       </div>
-      <div class="form-field span2">
-        <label>Titre *</label>
-        <input type="text" id="f-title" placeholder="Ex: One Piece" />
-      </div>
       <div class="form-field">
         <label>Catégorie</label>
         <select id="f-cat"></select>
@@ -1828,6 +1842,9 @@
           <option value="abandoned">❌ Abandonné</option>
         </select>
       </div>
+
+      <!-- ── Détails ── -->
+      <div class="form-section-label span2">Détails</div>
       <div class="form-field">
         <label>Auteur / Réalisateur</label>
         <input type="text" id="f-author" placeholder="Ex: Eiichiro Oda" />
@@ -1835,23 +1852,6 @@
       <div class="form-field">
         <label>Année</label>
         <input type="text" id="f-year" placeholder="Ex: 1997" />
-      </div>
-      <div class="form-field span2">
-        <label>Note (étoiles)</label>
-        <div class="star-picker" id="star-picker">
-          <!-- Les demi-étoiles sont gérées par JS -->
-        </div>
-        <div id="star-picker-label" style="font-size:12px;color:var(--text3);margin-top:4px;min-height:16px"></div>
-      </div>
-      <div class="form-field span2">
-        <label>Commentaire perso</label>
-        <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford…"></textarea>
-      </div>
-      <div class="form-field span2">
-        <label>Tags <span style="color:var(--text3);font-weight:400">(Entrée ou virgule pour valider)</span></label>
-        <div class="tags-input-wrap" id="tags-input-wrap" onclick="document.getElementById('tags-real-input').focus()">
-          <input class="tags-real-input" id="tags-real-input" placeholder="thriller, feelgood…" autocomplete="off" />
-        </div>
       </div>
       <div class="form-field">
         <label>Progression</label>
@@ -1870,6 +1870,26 @@
           </button>
         </div>
         <div id="dur-status" style="font-size:11px;color:var(--text3);margin-top:4px;min-height:14px"></div>
+      </div>
+
+      <!-- ── Avis & notes ── -->
+      <div class="form-section-label span2">Avis &amp; notes</div>
+      <div class="form-field span2">
+        <label>Note (étoiles)</label>
+        <div class="star-picker" id="star-picker">
+          <!-- Les demi-étoiles sont gérées par JS -->
+        </div>
+        <div id="star-picker-label" style="font-size:12px;color:var(--text3);margin-top:4px;min-height:16px"></div>
+      </div>
+      <div class="form-field span2">
+        <label>Commentaire perso</label>
+        <textarea id="f-note" placeholder="Ex: Excellent, le meilleur arc c'est Marineford…"></textarea>
+      </div>
+      <div class="form-field span2">
+        <label>Tags <span style="color:var(--text3);font-weight:400">(Entrée ou virgule pour valider)</span></label>
+        <div class="tags-input-wrap" id="tags-input-wrap" onclick="document.getElementById('tags-real-input').focus()">
+          <input class="tags-real-input" id="tags-real-input" placeholder="thriller, feelgood…" autocomplete="off" />
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2801,7 +2821,7 @@ function openModal() {
   renderTagsInput();
   renderStarPicker();
   document.getElementById('modal').classList.add('open');
-  document.getElementById('f-title').focus();
+  if (window.innerWidth > 700) document.getElementById('f-title').focus();
 }
 
 window.openEditModal = function(id) {
@@ -2839,7 +2859,7 @@ window.openEditModal = function(id) {
   renderTagsInput();
 
   document.getElementById('modal').classList.add('open');
-  document.getElementById('f-title').focus();
+  if (window.innerWidth > 700) document.getElementById('f-title').focus();
 }
 
 function closeModal() {
@@ -4419,9 +4439,9 @@ function checkAlerts() {
     if (!added) return;
     const days = Math.round((now - added) / 86400000);
     if (days > 30) {
-      addNotif('👀', `Tu regardes encore <strong>${esc(item.title)}</strong> ? En cours depuis ${days} jours !`, [
-        { label: '✅ Terminé',   fn: `setStatusQuick('${item.id}','done');window.clearAllNotifs()` },
-        { label: '❌ Abandonné', fn: `setStatusQuick('${item.id}','abandoned');window.clearAllNotifs()` },
+      addNotif('👀', `<strong>${esc(item.title)}</strong> — en cours depuis ${days} jours. Toujours dedans ?`, [
+        { label: '✅ Terminé',      fn: `setStatusQuick('${item.id}','done');window.clearAllNotifs()` },
+        { label: '⏸️ Mettre en pause', fn: `setStatusQuick('${item.id}','abandoned');window.clearAllNotifs()` },
       ]);
     }
   });
@@ -4592,6 +4612,34 @@ function initAfterLoad() {
     ));
   }
 }
+
+// ── Confort clavier mobile dans la modale ──
+// Sur mobile, quand le clavier s'ouvre, on fait défiler le champ actif
+// pour qu'il reste visible au-dessus du clavier, et on ajuste la hauteur
+// max de la modale sur la hauteur réelle visible (visualViewport) pour
+// que les boutons Annuler/Enregistrer ne soient jamais cachés derrière
+// le clavier.
+(() => {
+  const modalEl = document.getElementById('modal');
+  if (!modalEl) return;
+
+  modalEl.addEventListener('focusin', e => {
+    if (!e.target.matches('input, select, textarea')) return;
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300); // laisse le temps à l'animation du clavier
+  });
+
+  if (window.visualViewport) {
+    const modalBox = modalEl.querySelector('.modal');
+    const adjust = () => {
+      if (window.innerWidth > 700 || !modalEl.classList.contains('open')) return;
+      const vh = window.visualViewport.height;
+      if (modalBox) modalBox.style.maxHeight = (vh * 0.92) + 'px';
+    };
+    window.visualViewport.addEventListener('resize', adjust);
+  }
+})();
 
 // ── Service Worker + détection de mise à jour ──
 const updateBanner    = document.getElementById('update-banner');
