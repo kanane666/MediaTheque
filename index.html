@@ -2100,7 +2100,10 @@ const db   = initializeFirestore(app, {
 window._db = db;
 
 // Force persistence locale — la session survive aux fermetures de Safari/Chrome
-setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence:', e));
+// IMPORTANT : on attend que la persistence soit bien réglée AVANT de traiter
+// le retour de redirection Google, sinon la session peut ne pas se
+// synchroniser correctement dans Safari (mode standalone iOS notamment).
+const authReady = setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence:', e));
 
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });
@@ -2199,7 +2202,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Résultat du redirect (au retour de Google) ──
-getRedirectResult(auth).catch(err => {
+// On attend d'abord que la persistence soit bien réglée (authReady),
+// puis on traite le résultat et on force l'affichage si un utilisateur
+// est retourné — on ne compte plus uniquement sur onAuthStateChanged.
+authReady.then(() => getRedirectResult(auth)).then(result => {
+  if (result && result.user) {
+    clearTimeout(loadingTimeout);
+    document.getElementById('loading-screen').classList.remove('show');
+    document.getElementById('login-screen').style.display = 'none';
+    currentUser = result.user;
+    window._currentUser = result.user;
+    localStorage.setItem('mth_last_uid', result.user.uid);
+    showApp(result.user);
+    subscribeToItems(result.user.uid);
+  }
+}).catch(err => {
   console.error('Redirect result error:', err.code, err.message);
   if (err.code && err.code !== 'auth/no-auth-event') {
     setTimeout(() => {
