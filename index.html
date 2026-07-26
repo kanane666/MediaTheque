@@ -1431,7 +1431,8 @@
       /* ── Layout ── */
       .sidebar { display: none; }
       .mobile-nav { display: block; }
-      .main { margin-left: 0; padding: 0.75rem; padding-bottom: 90px; box-sizing: border-box; width: 100%; overflow-x: hidden; }
+      .main { margin-left: 0; padding: calc(0.75rem + env(safe-area-inset-top)) 0.75rem 90px; box-sizing: border-box; width: 100%; overflow-x: hidden; }
+      .topbar .btn-primary { padding: 12px 18px; }
       body { overflow-x: hidden; }
 
       /* ── Anti-zoom iOS ──
