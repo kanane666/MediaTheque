@@ -1797,8 +1797,31 @@
     <button class="mobile-nav-btn" id="mnav-friends" onclick="setPage('friends')">
       <i class="ti ti-users"></i>Amis
     </button>
+    <button class="mobile-nav-btn" id="mnav-menu" onclick="openMobileMenu()">
+      <i class="ti ti-menu-2"></i>Menu
+    </button>
   </div>
 </nav>
+
+<!-- ══ Mobile Menu (catégories, paramètres, données) ══ -->
+<div class="modal-bg" id="mobile-menu-modal" onclick="closeMobileMenuBg(event)">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title">Menu</span>
+      <button class="btn-close" onclick="closeMobileMenu()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="cat-btn" onclick="closeMobileMenu();openCatModal()"><i class="ti ti-settings-2 cat-icon"></i> Gérer les catégories</button>
+      <button class="cat-btn" onclick="closeMobileMenu();openAbout()"><i class="ti ti-info-circle cat-icon"></i> Paramètres &amp; À propos</button>
+      <button class="cat-btn" onclick="exportData()"><i class="ti ti-download cat-icon"></i> Exporter JSON</button>
+      <label class="cat-btn" style="cursor:pointer;">
+        <i class="ti ti-upload cat-icon"></i> Importer JSON
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
+      </label>
+      <button class="cat-btn" onclick="signOut()" style="color:var(--abandoned)"><i class="ti ti-logout cat-icon"></i> Se déconnecter</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL ══ -->
 <div class="modal-bg" id="modal" onclick="closeModalBg(event)">
@@ -3530,6 +3553,10 @@ setView(currentView); // init toggle state
 function openAbout()      { document.getElementById('about-modal').classList.add('open'); }
 function closeAbout()     { document.getElementById('about-modal').classList.remove('open'); }
 function closeAboutBg(e)  { if (e.target === document.getElementById('about-modal')) closeAbout(); }
+
+window.openMobileMenu  = function() { document.getElementById('mobile-menu-modal').classList.add('open'); };
+window.closeMobileMenu = function() { document.getElementById('mobile-menu-modal').classList.remove('open'); };
+window.closeMobileMenuBg = function(e) { if (e.target === document.getElementById('mobile-menu-modal')) closeMobileMenu(); };
 
 // ══════════════════════════════════
 // ── Category Management ──
