@@ -1594,7 +1594,7 @@
         <img id="user-avatar" class="user-avatar" src="" alt="" style="display:none;" />
         <div id="user-avatar-placeholder" class="user-avatar-placeholder">👤</div>
         <span id="user-name" class="user-name">—</span>
-        <button class="btn-logout" onclick="signOut()" title="Se déconnecter"><i class="ti ti-logout"></i></button>
+        <button class="btn-logout" onclick="openConfirmLogout()" title="Se déconnecter"><i class="ti ti-logout"></i></button>
       </div>
     </div>
     <div class="nav-tabs">
@@ -1626,7 +1626,6 @@
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="offline-badge" id="offline-badge"><i class="ti ti-wifi-off"></i> Hors ligne</div>
-        <div class="sync-queue-badge" id="sync-queue-badge" onclick="flushOfflineQueue()" title="Actions en attente — cliquer pour synchroniser"><i class="ti ti-cloud-upload"></i> <span id="queue-count">0</span> en attente</div>
         <div class="notif-bell-wrap" style="position:relative">
           <button class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifPanel()"><i class="ti ti-bell"></i></button>
           <div class="notif-count-badge" id="notif-count-badge">0</div>
@@ -1818,7 +1817,7 @@
         <i class="ti ti-upload cat-icon"></i> Importer JSON
         <input type="file" accept=".json" onchange="importData(event)" style="display:none;" />
       </label>
-      <button class="cat-btn" onclick="signOut()" style="color:var(--abandoned)"><i class="ti ti-logout cat-icon"></i> Se déconnecter</button>
+      <button class="cat-btn" onclick="closeMobileMenu();openConfirmLogout()" style="color:var(--abandoned)"><i class="ti ti-logout cat-icon"></i> Se déconnecter</button>
     </div>
   </div>
 </div>
@@ -1932,6 +1931,19 @@
     <div class="confirm-actions">
       <button class="btn-secondary" onclick="closeConfirmDel()">Annuler</button>
       <button class="btn-confirm-del" id="btn-confirm-del-ok" onclick="confirmDelExecute()"><i class="ti ti-trash"></i> Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Confirmation Déconnexion ══ -->
+<div class="modal-bg" id="confirm-logout-modal" onclick="closeConfirmLogoutBg(event)">
+  <div class="confirm-modal" onclick="event.stopPropagation()">
+    <div class="confirm-icon">🚪</div>
+    <div class="confirm-title">Se déconnecter ?</div>
+    <div class="confirm-sub">Tu devras te reconnecter avec Google pour retrouver ta collection.</div>
+    <div class="confirm-actions">
+      <button class="btn-secondary" onclick="closeConfirmLogout()">Annuler</button>
+      <button class="btn-confirm-del" onclick="closeConfirmLogout();signOut()"><i class="ti ti-logout"></i> Se déconnecter</button>
     </div>
   </div>
 </div>
@@ -2186,7 +2198,7 @@ onAuthStateChanged(auth, user => {
     window._currentUser = user;
     localStorage.setItem('mth_last_uid', user.uid);
     // Si l'app était déjà affichée via le cache, juste mettre à jour l'UI
-    if (document.getElementById('app').style.display === 'flex' && cachedUid === user.uid) {
+    if (document.getElementById('app').classList.contains('show') && cachedUid === user.uid) {
       // Déjà affiché — juste re-souscrire aux données
       document.getElementById('login-screen').style.display = 'none';
       updateUserUI(user);
@@ -2287,6 +2299,7 @@ function updateUserUI(user) {
 
 // ── Firestore real-time listener ──
 function subscribeToItems(uid) {
+  if (unsubscribeSnap) { unsubscribeSnap(); unsubscribeSnap = null; }
   setSyncState('syncing');
   const q = query(
     collection(db, 'users', uid, 'items'),
@@ -2378,6 +2391,10 @@ window.closeConfirmDel = function() {
 function closeConfirmDelBg(e) {
   if (e.target === document.getElementById('confirm-del-modal')) window.closeConfirmDel();
 }
+
+window.openConfirmLogout = function() { document.getElementById('confirm-logout-modal').classList.add('open'); };
+window.closeConfirmLogout = function() { document.getElementById('confirm-logout-modal').classList.remove('open'); };
+window.closeConfirmLogoutBg = function(e) { if (e.target === document.getElementById('confirm-logout-modal')) closeConfirmLogout(); };
 
 window.confirmDelExecute = async function() {
   if (!pendingDelId || !currentUser) return;
@@ -4198,48 +4215,21 @@ window.handleCoverUpload = async function(e) {
 // ══════════════════════════════════
 // ── 2. Mode hors ligne complet ──
 // ══════════════════════════════════
+// NOTE : la vraie gestion hors ligne se fait via le cache persistant
+// Firestore (persistentLocalCache, configuré plus haut) — les écritures
+// faites hors connexion sont automatiquement mises en file par le SDK
+// Firestore lui-même et synchronisées au retour du réseau.
 let isOnline = navigator.onLine;
-let offlineQueue = [];
-try { offlineQueue = JSON.parse(localStorage.getItem('mth_offline_queue') || '[]'); } catch(e) {}
-
-function saveOfflineQueue() { localStorage.setItem('mth_offline_queue', JSON.stringify(offlineQueue)); }
 
 function updateOfflineUI() {
   const offlineBadge = document.getElementById('offline-badge');
-  const queueBadge   = document.getElementById('sync-queue-badge');
-  const queueCount   = document.getElementById('queue-count');
   if (offlineBadge) offlineBadge.classList.toggle('show', !isOnline);
-  if (queueBadge) {
-    queueBadge.classList.toggle('show', offlineQueue.length > 0);
-    if (queueCount) queueCount.textContent = offlineQueue.length;
-  }
 }
 
-window.addEventListener('online',  () => { isOnline = true;  updateOfflineUI(); window.flushOfflineQueue(); });
+window.addEventListener('online',  () => { isOnline = true;  updateOfflineUI(); });
 window.addEventListener('offline', () => { isOnline = false; updateOfflineUI(); });
 
-window.flushOfflineQueue = async function() {
-  if (!isOnline || !offlineQueue.length || !window._currentUser) return;
-  const queue = [...offlineQueue];
-  offlineQueue = []; saveOfflineQueue(); updateOfflineUI();
-  setSyncState('syncing');
-  for (const action of queue) {
-    try {
-      const uid = window._currentUser.uid;
-      const db  = window._db;
-      if (!db) continue;
-      if (action.type === 'update') {
-        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-        await updateDoc(doc(db, 'users', uid, 'items', action.id), action.data);
-      }
-    } catch(err) { console.error('Flush error:', err); }
-  }
-  setSyncState('ok');
-  showToast(`${queue.length} action(s) synchronisée(s) ✓`);
-};
-
 updateOfflineUI();
-if (isOnline && offlineQueue.length > 0) setTimeout(window.flushOfflineQueue, 3000);
 
 // ══════════════════════════════════
 // ── 3. PWA Install Bottom Sheet ──
